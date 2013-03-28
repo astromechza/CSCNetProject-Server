@@ -1,5 +1,11 @@
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
+
 
 import sun.tools.jar.CommandLine;
 
@@ -24,10 +30,10 @@ public class RunServer {
 		a.AddFlag("help", "Print this usage message.");
 		a.AddOption("file", "Path to the file containing server properties. View example.server.properties for more information", "server.properties");
 		
-		Log.debug("Parsing arguments");
+		Log.info("Parsing arguments");
 		
-		// Attempt to parse the command line arguments. Bail if any exceptions occur
 		try {
+			// Attempt to parse the command line arguments. Bail if any exceptions occur
 			a.parse(args);
 		} catch (Exception e) {
 			// Argument errors are critical
@@ -41,11 +47,23 @@ public class RunServer {
 		
 		Log.info("Reading configuration file");
 		
-		// READ config file
-		// 1) database filename
-		// 2) database credentials
-		// 3) database loglevel
-		// 4) syslog level 				THIS IS OVERRIDDEN BY --debug
+		Properties configuration = new Properties();
+		try
+		{
+			String path = a.getOption("file");
+			path = new URI(path).normalize().getPath();
+			Log.debug("configuration file path = " + path);			
+			configuration.load(new FileInputStream(path));
+		}
+		catch (IOException | URISyntaxException e)
+		{
+			Log.critical(e.getMessage());
+			Log.info("Aborting");
+			System.exit(-1);
+		}
+		
+		Log.debug("configuration: " + configuration);
+		
 		
 		Log.info("Initialise database monitor");
 		
