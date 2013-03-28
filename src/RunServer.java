@@ -83,8 +83,8 @@ public class RunServer {
 		
 		Log.info("Starting socket listener");
 		
-//		ConnectionServer cs = new ConnectionServer(9876);
-//		cs.run();
+		// TODO: pass this port in a variable.
+		new Server(3000);
 	}
 
 }
