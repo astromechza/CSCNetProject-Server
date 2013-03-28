@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 import sun.tools.jar.CommandLine;
 
 
@@ -12,14 +15,29 @@ public class RunServer {
 	 *  These could also be populated via config file
 	 * 
 	 */
+	
 	public static void main(String[] args) {
 		
-		Log.debug("Parsing arguments");
-				
+		// create the argument parser
+		ArgParser a = new ArgParser();
+		a.AddFlag("debug", "Force the server into debug mode.");
+		a.AddFlag("help", "Print this usage message.");
+		a.AddOption("file", "Path to the file containing server properties. View example.server.properties for more information", "server.properties");
 		
-		// Argument parsing
-		// 1) get configuration file
-		// 2) check for --debug
+		Log.debug("Parsing arguments");
+		
+		// Attempt to parse the command line arguments. Bail if any exceptions occur
+		try {
+			a.parse(args);
+		} catch (Exception e) {
+			// Argument errors are critical
+			Log.critical(e.getMessage());
+			a.printUsage();							// print help string just in case
+			Log.info("Aborting");
+			System.exit(-1);
+		}
+				
+		if (a.hasFlag("--help")) a.printUsage();
 		
 		Log.info("Reading configuration file");
 		
