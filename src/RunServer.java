@@ -1,26 +1,15 @@
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
 
-
-import sun.tools.jar.CommandLine;
+import com.sun.istack.internal.logging.Logger;
 
 
 public class RunServer {
-	
-	/* RUNSERVER
-	 *  TODO Args:
-	 *  1) which port to listen on.
-	 *  2) log level (override default)
-	 *  3) ...
-	 *  
-	 *  These could also be populated via config file
-	 * 
-	 */
 	
 	public static void main(String[] args) {
 		
@@ -29,34 +18,35 @@ public class RunServer {
 		a.AddFlag("debug", "Force the server into debug mode.");
 		a.AddFlag("help", "Print this usage message.");
 		a.AddOption("file", "Path to the file containing server properties. View example.server.properties for more information", "server.properties");
-		
-		Log.info("Parsing arguments");
-		
+				
 		try {
 			// Attempt to parse the command line arguments. Bail if any exceptions occur
 			a.parse(args);
 		} catch (Exception e) {
 			// Argument errors are critical
-			Log.critical(e.getMessage());
+			System.err.println(e.getMessage());
 			a.printUsage();							// print help string just in case
-			Log.info("Aborting");
 			System.exit(-1);
 		}
 				
-		if (a.hasFlag("--help")) a.printUsage();
+		// handle --help option
+		if (a.hasFlag("--help")) {
+			a.printUsage();
+			System.exit(0);
+		}
 		
 		Log.info("Reading configuration file");
 		
 		Properties configuration = new Properties();
-		try
-		{
+		
+		try {
+			
 			String path = a.getOption("file");
 			path = new URI(path).normalize().getPath();
 			Log.debug("configuration file path = " + path);			
 			configuration.load(new FileInputStream(path));
-		}
-		catch (IOException | URISyntaxException e)
-		{
+			
+		} catch (IOException | URISyntaxException e) {
 			Log.critical(e.getMessage());
 			Log.info("Aborting");
 			System.exit(-1);
@@ -65,7 +55,45 @@ public class RunServer {
 		Log.debug("configuration: " + configuration);
 		
 		
-		Log.info("Initialise database monitor");
+		Log.info("Initialise database manager");
+		
+		//disable silly sqlite4java logging
+		java.util.logging.Logger.getLogger("com.almworks.sqlite4java").setLevel(Level.OFF);
+		
+		//check file exists
+		String dbfile = configuration.getProperty("database_file");
+		try {
+			// normalise variables and dotdots
+			dbfile = new URI(dbfile).normalize().getPath();
+
+			DatabaseManager.setFile(dbfile);
+			
+			File f = new File(dbfile);
+			Log.info("Using database '" + dbfile + "'");
+			
+			// check existence
+			if (f.exists() && (!DatabaseManager.checkDB())) 
+			{			
+				Log.warning("Existing database was invalid. Deleting and recreating.");
+				f.delete();
+			}
+			
+			if (!f.exists())
+			{
+				DatabaseManager.createDB();
+			}
+			
+			
+			
+			
+		} catch (URISyntaxException e) {
+			Log.critical("Failed to interpret database=" + dbfile);
+			System.exit(-1);
+		} catch (NullPointerException e) {
+			Log.critical("'database_file' value not found in configuration file.");
+			System.exit(-1);
+		}	
+
 		
 		// INITIALISE DATABASE SINGLETON
 		// check if it exists
@@ -75,16 +103,17 @@ public class RunServer {
 		
 		Log.info("Initialise logging");
 		
+
 		// INITIALISE LOGGING TABLES/FILES
 		// setup logging table in database dump/drop/create
-		// create static LOG class
 		// set logging level
 		// test ( write to log, read from log )
 		
 		Log.info("Starting socket listener");
 		
-		// TODO: pass this port in a variable.
-		new Server(3000);
+		int port = Integer.parseInt(configuration.getProperty("port"));	
+		
+		new Server(port);
 	}
 
 }
