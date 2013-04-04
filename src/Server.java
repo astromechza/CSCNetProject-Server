@@ -1,6 +1,7 @@
 
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -8,9 +9,7 @@ import log.Log;
 
 public class Server {
 	ServerSocket ss;
-	
-	public final static boolean DEBUG = true;
-	
+		
 	public Server(int port){
 		
 		while(ss == null)
@@ -18,9 +17,12 @@ public class Server {
 			try {
 				ss = new ServerSocket(port);
 				Log.info("Listening on port " + port);
-			} catch (IOException e) {
+			} catch (BindException e) {
 				Log.error("Failed to start server on port "+port+": "+e.toString());
 				Log.info("Attempting to use port " + (++port) + " instead");
+			} catch (IOException e) {
+				Log.critical("Failed to start server on port "+port+": "+e.toString());
+				return;
 			}
 		}	
 		
@@ -31,7 +33,7 @@ public class Server {
 		while(true){
 			try {
 				Socket s = ss.accept();
-				debug("Client connected.");
+				Log.debug("Client connected.");
 				new ClientInstance(s);
 				
 			} catch (IOException e) {
@@ -41,8 +43,4 @@ public class Server {
 		}
 	}
 	
-	public static void debug(String s){
-		if(DEBUG)
-			System.out.println(s);
-	}
 }

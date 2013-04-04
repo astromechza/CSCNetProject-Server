@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import log.Log;
+
 public class ClientInstance implements Runnable {
 	
 	private Socket socket;
@@ -40,7 +42,7 @@ public class ClientInstance implements Runnable {
 			{	
 				// work here
 				// the line that was received is in 'received'
-				Server.debug("Received: " + received);
+				Log.debug("Received: " + received);
 				
 				
 				// for now just echo it back to the client (pipe it back)
@@ -60,7 +62,7 @@ public class ClientInstance implements Runnable {
 			}
 		}
 		
-		Server.debug("Client disconnected.");		
+		Log.debug("Client disconnected.");		
 	}
 	
 	public void write(String str){
