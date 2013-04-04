@@ -80,9 +80,14 @@ public class RunServer {
 			Log.critical(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
 			System.exit(-1);
 		}			
+
+		int port = Integer.parseInt(configuration.getProperty("preffered_port"));	
 		
+		
+		
+
 		Log.info("Starting socket listener");	
-		int port = Integer.parseInt(configuration.getProperty("port"));	
+		
 		new Server(port);
 	}
 
