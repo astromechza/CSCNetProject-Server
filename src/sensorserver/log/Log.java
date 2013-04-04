@@ -5,9 +5,14 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
+import sensorserver.database.Database;
 
 
 public class Log {
@@ -90,6 +95,8 @@ public class Log {
 		{
 			flog(lvl, message);
 		}
+		
+		if (Database.getInstance() != null) dlog(lvl, message);
 	}
 	
 	private static void slog(LogLevel lvl, Object message)
@@ -115,6 +122,27 @@ public class Log {
 		{
 			e.printStackTrace();
 		}
+		
+	}
+	
+	private static void dlog(LogLevel lvl, Object message)
+	{		
+		
+		try {
+			Connection c = Database.getInstance().getConnection();
+			
+			PreparedStatement ps = c.prepareStatement("INSERT INTO logs (`time`, `level`, `message`) VALUES (?,?,?);");
+			
+			ps.setTimestamp(1, new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()));
+			ps.setInt(2, 3);
+			ps.setString(3, "" + message.toString());
+			ps.execute();			
+			
+		} catch (SQLException e) {
+			slog(LogLevel.WARNING, "Could not log to database! '" + message + "'");
+		}
+		
+		
 		
 	}
 	
