@@ -1,4 +1,5 @@
-package database;
+package sensorserver.database;
+
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,7 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import log.Log;
+import sensorserver.Utils;
+import sensorserver.log.Log;
+
 
 
 public class Database 
@@ -55,7 +58,8 @@ public class Database
 		}
 		catch (ClassNotFoundException e)
 		{
-			Log.error(e.getMessage());
+			Log.critical(e.getMessage());
+			Log.critical(Utils.fmtStackTrace(e.getStackTrace()));
 			System.exit(-1);
 		}
 		return con;

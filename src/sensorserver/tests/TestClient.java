@@ -1,3 +1,4 @@
+package sensorserver.tests;
 
 
 import java.io.BufferedReader;

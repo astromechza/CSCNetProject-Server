@@ -1,4 +1,4 @@
-package log;
+package sensorserver.log;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -66,7 +66,7 @@ public class Log {
 			}
 		}
 		
-		
+
 		Calendar c = Calendar.getInstance();
 		c.set(Calendar.HOUR_OF_DAY, 0);
 		c.set(Calendar.MINUTE, 0);

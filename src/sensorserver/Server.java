@@ -1,12 +1,15 @@
+package sensorserver;
 
 
 import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import org.json.*;// import all, not sure what exactly is needed for what
 
-import log.Log;
+import org.json.JSONObject;
+
+import sensorserver.log.Log;
+
 
 public class Server {
 	ServerSocket ss;
@@ -43,10 +46,6 @@ public class Server {
 			}			
 		}
 	}
-	
-	/*
-	 * Methods called by client: 
-	 */
 	
 	public JSONObject update ()
 	{

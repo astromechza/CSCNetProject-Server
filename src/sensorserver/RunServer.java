@@ -1,3 +1,4 @@
+package sensorserver;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -5,8 +6,9 @@ import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import log.Log;
-import database.Database;
+import sensorserver.database.Database;
+import sensorserver.log.Log;
+
 
 
 public class RunServer {
@@ -83,10 +85,9 @@ public class RunServer {
 
 		int port = Integer.parseInt(configuration.getProperty("preffered_port"));	
 		
-		
-		
+			
 
-		Log.info("Starting socket listener");	
+		Log.debug("Starting socket listener");	
 		
 		new Server(port);
 	}
