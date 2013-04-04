@@ -19,7 +19,7 @@ public class TestClient {
 			PrintWriter out = new PrintWriter(s.getOutputStream(), true);			
 			
 			System.out.println("Connected");
-			out.write("testing");
+			out.write("Learning git!");
 			out.println();
 			out.flush();		
 			
