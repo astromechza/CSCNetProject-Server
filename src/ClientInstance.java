@@ -35,10 +35,20 @@ public class ClientInstance implements Runnable {
 		String received;
 		
 		try {
-			while(!close && (received = in.readLine()) != null){
-				Server.debug("Received: "+received);
+			// read everything
+			while(!close && (received = in.readLine()) != null)
+			{	
+				// work here
+				// the line that was received is in 'received'
+				Server.debug("Received: " + received);
+				
+				
+				// for now just echo it back to the client (pipe it back)
 				write(received);
 			}			
+			
+			
+			
 		} catch (IOException e) {
 		} finally {
 			try {

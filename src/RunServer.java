@@ -1,17 +1,15 @@
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
-import java.util.logging.Level;
 
+
+import database.Database;
 import log.Log;
-
-
-import com.sun.istack.internal.logging.Logger;
-
-import database.DatabaseManager;
 
 
 public class RunServer {
@@ -42,6 +40,11 @@ public class RunServer {
 			System.exit(0);
 		}
 		
+
+		Log.info("-------------------------");
+		Log.info("Initialising SensorServer");
+		Log.info("-------------------------");
+		
 		Log.info("Reading configuration file");
 		
 		Properties configuration = new Properties();
@@ -63,60 +66,20 @@ public class RunServer {
 		
 		Log.info("Initialise database manager");
 		
-		//disable silly sqlite4java logging
-		java.util.logging.Logger.getLogger("com.almworks.sqlite4java").setLevel(Level.OFF);
-		
-		//check file exists
-		String dbfile = configuration.getProperty("database_file");
-		try {
-			// normalise variables and dotdots
-			dbfile = new URI(dbfile).normalize().getPath();
-
-			DatabaseManager.openDB(dbfile);
-			
-			File f = new File(dbfile);
-			Log.info("Using database '" + dbfile + "'");
-			
-			// check existence
-			if (f.exists() && (!DatabaseManager.checkDB())) 
-			{			
-				Log.warning("Existing database was invalid. Deleting and recreating.");
-				f.delete();
-			}
-			
-			if (!f.exists())
-			{
-				DatabaseManager.createDB();
-			}
-			
-			
-			
-			
-		} catch (URISyntaxException e) {
-			Log.critical("Failed to interpret database=" + dbfile);
-			System.exit(-1);
-		} catch (NullPointerException e) {
-			Log.critical("'database_file' value not found in configuration file.");
-			System.exit(-1);
-		}	
-
 		
 		// INITIALISE DATABASE SINGLETON
-		// check if it exists
-		// clean up ? stale logs/connections
-		// run connection tests
-		// bail if not good		
 		
+		Database d = new Database("jdbc:mysql://localhost:3306/sensordb","root","mafikeng");
+		try {
+			Connection c = d.getConnection();
+			Statement s = c.createStatement();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		
-		Log.info("Starting socket listener");
-		
-			for(int i=0;i<1000;i++)
-			{
-				Log.info(i);
-			}
-		
+		Log.info("Starting socket listener");	
 		int port = Integer.parseInt(configuration.getProperty("port"));	
-		
 		new Server(port);
 	}
 

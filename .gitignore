@@ -1,3 +1,5 @@
 *.class
+*.db
+*.log
 
 bin/
