@@ -2,14 +2,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Properties;
 
-
-import database.Database;
 import log.Log;
+import database.Database;
 
 
 public class RunServer {
@@ -64,19 +61,22 @@ public class RunServer {
 		
 		Log.debug("configuration: " + configuration);		
 		
-		Log.info("Initialise database manager");
-		
+		Log.info("Initialise database manager");		
 		
 		// INITIALISE DATABASE SINGLETON
 		
-		Database d = new Database("jdbc:mysql://localhost:3306/sensordb","root","mafikeng");
-		try {
-			Connection c = d.getConnection();
-			Statement s = c.createStatement();
-			
-		} catch (SQLException e) {
+		Database.initInstance("jdbc:mysql://localhost:3306/sensordb","root","mafikeng");
+		
+		// Test connection stuff
+		try 
+		{
+			Database.getInstance().details();
+		} 
+		catch (SQLException e) 
+		{
 			e.printStackTrace();
-		}
+			System.exit(-1);
+		}			
 		
 		Log.info("Starting socket listener");	
 		int port = Integer.parseInt(configuration.getProperty("port"));	

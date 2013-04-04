@@ -2,13 +2,18 @@ package database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import log.Log;
 
 
 public class Database 
 {
+	
+	private static Database instance;	
+	
 	private String URL;
 	private String USER;
 	private String PASSWORD;
@@ -20,6 +25,18 @@ public class Database
 		USER = user;
 		PASSWORD = password;
 	}
+	
+	// == singleton code ==
+	public static void initInstance(String url, String user, String pass)
+	{
+		instance = new Database(url, user, pass);
+	}
+
+	public static Database getInstance() 
+	{ 
+		return instance; 
+	}
+	// == end of singleton code ==
 	
 	public Connection getConnection() throws SQLException
 	{
@@ -35,6 +52,29 @@ public class Database
 			System.exit(-1);
 		}
 		return con;
+	}
+
+	public void details() throws SQLException 
+	{
+		Connection con = getConnection();
+		Log.info("Connected to database: " + con.getMetaData().getURL());
+		
+		Statement s = con.createStatement();
+		ResultSet rs = s.executeQuery("SHOW TABLES;");
+		String tables = "Tables: ";
+		while(rs.next())
+		{
+			tables += "'" + rs.getString(1) + "' ";
+		}
+		Log.info(tables);
+		
+		rs = s.executeQuery("SELECT * FROM readings;");
+		
+		int count = 0;
+		while(rs.next()) count++;
+		
+		Log.info("Number of Readings: " + count);
+		
 	}
 	
 	
