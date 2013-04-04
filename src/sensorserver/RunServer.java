@@ -84,7 +84,7 @@ public class RunServer {
 			System.exit(-1);
 		}			
 
-		int port = Integer.parseInt(configuration.getProperty("preffered_port"));	
+		int port = Integer.parseInt(configuration.getProperty("preferred_port"));	
 		
 			
 

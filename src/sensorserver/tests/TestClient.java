@@ -8,6 +8,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import org.json.JSONObject;
+
 public class TestClient {
 	public static void main(String[] args){
 		new TestClient();
@@ -19,8 +21,12 @@ public class TestClient {
 			BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));			
 			PrintWriter out = new PrintWriter(s.getOutputStream(), true);			
 			
+			JSONObject o = new JSONObject();
+			o.put("action", "ping");
+			
+			
 			System.out.println("Connected");
-			out.write("Learning git!");
+			out.write(o.toString());
 			out.println();
 			out.flush();		
 			
