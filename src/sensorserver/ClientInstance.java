@@ -42,17 +42,11 @@ public class ClientInstance implements Runnable {
 			// read everything
 			while(!close && (received = in.readLine()) != null)
 			{	
-				// work here
-				// the line that was received is in 'received'
 				Log.debug("Received: " + received);
 				
-				
-				// for now just echo it back to the client (pipe it back)
-				write(received);
+				// Deal with whatever we received.
+				MessageHandler.consume(this, received);
 			}			
-			
-			
-			
 		} catch (IOException e) {
 		} finally {
 			try {
