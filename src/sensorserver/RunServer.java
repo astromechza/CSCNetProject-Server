@@ -67,14 +67,15 @@ public class RunServer {
 		
 		// INITIALISE DATABASE SINGLETON	
 		
-		Database.initInstance(
-				configuration.getProperty("database_url"),
-				configuration.getProperty("database_user"),
-				configuration.getProperty("database_password"));
+		
 		
 		// Test connection stuff
 		try 
 		{
+			Database.initInstance(
+					configuration.getProperty("database_url"),
+					configuration.getProperty("database_user"),
+					configuration.getProperty("database_password"));
 			Database.getInstance().details();
 		} 
 		catch (Exception e) 

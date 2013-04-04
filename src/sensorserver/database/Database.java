@@ -21,16 +21,29 @@ public class Database
 	private String USER;
 	private String PASSWORD;
 	private String DRIVER = "com.mysql.jdbc.Driver";
+	private Connection activeConnection;
 	   
-	public Database(String url, String user, String password)
+	public Database(String url, String user, String password) throws SQLException
 	{
 		URL = url;
 		USER = user;
 		PASSWORD = password;
+		
+		try
+		{
+			Class.forName(DRIVER);
+			activeConnection = DriverManager.getConnection(URL, USER, PASSWORD);
+		}
+		catch (ClassNotFoundException e)
+		{
+			Log.critical(e.getMessage());
+			Log.critical(Utils.fmtStackTrace(e.getStackTrace()));
+			System.exit(-1);
+		}
 	}
 	
 	// == singleton code ==
-	public static void initInstance(String url, String user, String pass)
+	public static void initInstance(String url, String user, String pass) throws SQLException
 	{
 		instance = new Database(url, user, pass);
 	}
@@ -49,20 +62,8 @@ public class Database
 	 * @throws SQLException if the connection fails.
 	 */
 	public Connection getConnection() throws SQLException
-	{
-		Connection con = null;
-		try
-		{
-			Class.forName(DRIVER);
-			con = DriverManager.getConnection(URL, USER, PASSWORD);
-		}
-		catch (ClassNotFoundException e)
-		{
-			Log.critical(e.getMessage());
-			Log.critical(Utils.fmtStackTrace(e.getStackTrace()));
-			System.exit(-1);
-		}
-		return con;
+	{			
+		return activeConnection;		
 	}
 
 	/**
