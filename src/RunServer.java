@@ -6,12 +6,19 @@ import java.net.URISyntaxException;
 import java.util.Properties;
 import java.util.logging.Level;
 
+import log.Log;
+
+
 import com.sun.istack.internal.logging.Logger;
+
+import database.DatabaseManager;
 
 
 public class RunServer {
 	
 	public static void main(String[] args) {
+		
+		Log.init();
 		
 		// create the argument parser
 		ArgParser a = new ArgParser();
@@ -52,8 +59,7 @@ public class RunServer {
 			System.exit(-1);
 		}
 		
-		Log.debug("configuration: " + configuration);
-		
+		Log.debug("configuration: " + configuration);		
 		
 		Log.info("Initialise database manager");
 		
@@ -66,7 +72,7 @@ public class RunServer {
 			// normalise variables and dotdots
 			dbfile = new URI(dbfile).normalize().getPath();
 
-			DatabaseManager.setFile(dbfile);
+			DatabaseManager.openDB(dbfile);
 			
 			File f = new File(dbfile);
 			Log.info("Using database '" + dbfile + "'");
@@ -101,15 +107,13 @@ public class RunServer {
 		// run connection tests
 		// bail if not good		
 		
-		Log.info("Initialise logging");
-		
-
-		// INITIALISE LOGGING TABLES/FILES
-		// setup logging table in database dump/drop/create
-		// set logging level
-		// test ( write to log, read from log )
 		
 		Log.info("Starting socket listener");
+		
+			for(int i=0;i<1000;i++)
+			{
+				Log.info(i);
+			}
 		
 		int port = Integer.parseInt(configuration.getProperty("port"));	
 		
