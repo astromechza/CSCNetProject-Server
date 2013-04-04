@@ -38,6 +38,13 @@ public class Database
 	}
 	// == end of singleton code ==
 	
+	/**
+	 * Get a connection to the current database. This exit(-1)'s if the 
+	 * driver class is not found as this is a critical issue.
+	 * 
+	 * @return an open connection.
+	 * @throws SQLException if the connection fails.
+	 */
 	public Connection getConnection() throws SQLException
 	{
 		Connection con = null;
@@ -54,6 +61,14 @@ public class Database
 		return con;
 	}
 
+	/**
+	 * Log some details about the connected database. This includes
+	 * the url of the database, the tables, and the number of readings
+	 * present in the database.
+	 * 
+	 * @throws SQLException if the connection failed or if any of the 
+	 * sql statements failed.
+	 */
 	public void details() throws SQLException 
 	{
 		Connection con = getConnection();

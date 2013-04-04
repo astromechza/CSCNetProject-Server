@@ -94,7 +94,7 @@ public class Log {
 	
 	private static void slog(LogLevel lvl, Object message)
 	{
-		Date now = new Date();
+		Date now = new Date();		
 		System.out.println(logdateformat.format(now) + " : " + lvl + " : " + message.toString());
 	}
 	

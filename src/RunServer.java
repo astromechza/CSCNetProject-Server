@@ -63,18 +63,21 @@ public class RunServer {
 		
 		Log.info("Initialise database manager");		
 		
-		// INITIALISE DATABASE SINGLETON
+		// INITIALISE DATABASE SINGLETON	
 		
-		Database.initInstance("jdbc:mysql://localhost:3306/sensordb","root","mafikeng");
+		Database.initInstance(
+				configuration.getProperty("database_url"),
+				configuration.getProperty("database_user"),
+				configuration.getProperty("database_password"));
 		
 		// Test connection stuff
 		try 
 		{
 			Database.getInstance().details();
 		} 
-		catch (SQLException e) 
-		{
-			e.printStackTrace();
+		catch (Exception e) 
+		{			
+			Log.critical(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
 			System.exit(-1);
 		}			
 		
