@@ -52,6 +52,8 @@ public class Server {
 	{
 		JSONObject jo =  new JSONObject ();
 		jo.put("Result", "update called");
+		jo.put("Error", "no errors now");
+		jo.put("ID", "ID goes here");
 		return jo;
 	}
 	
