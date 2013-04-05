@@ -3,7 +3,7 @@
 # ----------------------------
 
 # PORT to listen on
-preffered_port=3000
+preferred_port=3000
 
 # Database connection info
 database_url=jdbc:mysql://<host>:3306/<database name>
