@@ -96,7 +96,9 @@ public class Log {
 			flog(lvl, message);
 		}
 		
-		if (Database.getInstance() != null) dlog(lvl, message);
+		// I'm not entirely sure system debug information is the type of logging they want.
+		// More like HTTP-like logging such as requests. In our case uploads, downloads and queries.
+		//if (Database.getInstance() != null) dlog(lvl, message);
 	}
 	
 	private static void slog(LogLevel lvl, Object message)
@@ -131,11 +133,11 @@ public class Log {
 		try {
 			Connection c = Database.getInstance().getConnection();
 			
-			PreparedStatement ps = c.prepareStatement("INSERT INTO logs (`time`, `level`, `message`) VALUES (?,?,?);");
+			PreparedStatement ps = c.prepareStatement("INSERT INTO `logs` (group_id, action, created_at) VALUES (?,?,?);");
 			
-			ps.setTimestamp(1, new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()));
-			ps.setInt(2, 3);
-			ps.setString(3, "" + message.toString());
+			ps.setInt(1, 1);
+			ps.setString(2, message.toString());
+			ps.setTimestamp(3, new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()));
 			ps.execute();			
 			
 		} catch (SQLException e) {

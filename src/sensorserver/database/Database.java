@@ -104,6 +104,27 @@ public class Database
 		stmt.setDouble(3, value);
 		stmt.setTimestamp(4, new Timestamp(Calendar.getInstance().getTimeInMillis()));
 		int newRows = stmt.executeUpdate();
+		
+		// Log this upload.
+		insertLog(groupId, "new_readings");
+		
 		return newRows;
-	}	
+	}
+	
+	public Integer insertLog(int groupId, String action){
+		try{
+			PreparedStatement stmt = activeConnection.prepareStatement("INSERT INTO `logs` (group_id, action, created_at) VALUES (?, ?, ?);");
+	
+			stmt.setInt(1, groupId);
+			stmt.setString(2, action);
+			stmt.setTimestamp(3, new Timestamp(Calendar.getInstance().getTimeInMillis()));
+			int newRows = stmt.executeUpdate();
+			return newRows;		
+		}catch(SQLException e){
+			Log.error("SQL error in Database.insertLog. Failed to log action to database.");
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
 }
