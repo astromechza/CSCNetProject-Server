@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import org.json.JSONObject;
+
 import sensorserver.log.Log;
 
 
@@ -61,8 +63,8 @@ public class ClientInstance implements Runnable {
 		Log.debug("Client disconnected.");		
 	}
 	
-	public void write(String str){
-		out.write(str);
+	public void write(JSONObject jo){
+		out.write(jo.toString());
 		out.println();
 		out.flush();
 	}

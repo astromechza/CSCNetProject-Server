@@ -1,16 +1,16 @@
 package sensorserver.database;
 
-
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.Calendar;
 
 import sensorserver.Utils;
 import sensorserver.log.Log;
-
-
 
 public class Database 
 {
@@ -93,9 +93,17 @@ public class Database
 		int count = 0;
 		while(rs.next()) count++;
 		
-		Log.info("Number of Readings: " + count);
-		
+		Log.info("Number of Readings: " + count);		
 	}
 	
-	
+	public int insertReading(int groupId, String type, double value) throws SQLException{
+		PreparedStatement stmt = activeConnection.prepareStatement("INSERT INTO `readings` (group_id, reading_type, reading_value, created_at) VALUES (?, ?, ?, ?);");
+
+		stmt.setInt(1, groupId);
+		stmt.setString(2, type);
+		stmt.setDouble(3, value);
+		stmt.setTimestamp(4, new Timestamp(Calendar.getInstance().getTimeInMillis()));
+		int newRows = stmt.executeUpdate();
+		return newRows;
+	}	
 }

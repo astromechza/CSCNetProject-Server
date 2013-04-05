@@ -1,5 +1,9 @@
 package sensorserver;
 
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -65,19 +69,27 @@ public class MessageHandler {
 			int groupId = messageObj.getInt("group_id");
 			JSONArray readings = messageObj.getJSONObject("params").getJSONArray("readings");
 			
+			int totalNewRows = 0;
 			for(int i = 0; i < readings.length(); i++){
 				JSONObject reading = readings.getJSONObject(i);
 				String type = reading.getString("type");
 				double value = reading.getDouble("value");
 				
 				Database d = Database.getInstance();
-				// TODO: implement d.insertReading(group_id, type, value);
+				totalNewRows += d.insertReading(groupId, type, value);
 			}
+			
+			client.write(buildSuccessMessage(totalNewRows+" records logged."));
 		
 		}catch(JSONException e){
-			Log.error("JSON Error in MessageHandler.handleNewReadings");
+			Log.error("JSON Error in MessageHandler.handleNewReadings.");
 			e.printStackTrace();
-		}		
+			client.write(buildErrorMessage("Malformed JSON request."));
+		}catch(SQLException e){
+			Log.error("SQL Error in MessageHandler.handleNewReadings.");
+			e.printStackTrace();
+			client.write(buildErrorMessage("SQL Error."));
+		}
 	}
 	
 	private static void handleQueryReadings(ClientInstance client, JSONObject messageObj){
@@ -87,4 +99,20 @@ public class MessageHandler {
 	private static void handleQueryLogs(ClientInstance client, JSONObject messageObj){
 		
 	}	
+	
+	private static JSONObject buildSuccessMessage(String message){
+		Map<String, Object> m = new HashMap<String, Object>();
+		m.put("result", message);
+		return buildServerResponse(m);
+	}
+	
+	private static JSONObject buildErrorMessage(String message){
+		Map<String, Object> m = new HashMap<String, Object>();
+		m.put("error", message);
+		return buildServerResponse(m);
+	}
+	
+	private static JSONObject buildServerResponse(Map<String, Object> keyvals){
+		return new JSONObject(keyvals);
+	}
 }

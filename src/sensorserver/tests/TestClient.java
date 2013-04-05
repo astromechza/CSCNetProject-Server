@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class TestClient {
@@ -22,7 +23,18 @@ public class TestClient {
 			PrintWriter out = new PrintWriter(s.getOutputStream(), true);			
 			
 			JSONObject o = new JSONObject();
-			o.put("action", "ping");
+			o.put("action", "new_readings");
+			o.put("group_id", 1);
+			
+			JSONObject params = new JSONObject();
+			JSONArray readings = new JSONArray();
+			JSONObject reading = new JSONObject();
+			reading.put("type", "temperature");
+			reading.put("value", 56.07);
+			
+			readings.put(reading);
+			params.put("readings", readings);
+			o.put("params", params);
 			
 			
 			System.out.println("Connected");

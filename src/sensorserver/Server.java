@@ -45,33 +45,5 @@ public class Server {
 				e.printStackTrace();
 			}			
 		}
-	}
-	
-	public JSONObject update ()
-	{
-		JSONObject jo =  new JSONObject ();
-		jo.put("Result", "update called");
-		jo.put("Error", "no errors now");
-		jo.put("ID", "ID goes here");
-		return jo;
-	}
-	
-	public JSONObject ping ()
-	{
-		JSONObject jo =  new JSONObject ();
-		jo.put("Result", "ping called");
-		jo.put("Error", "no errors now");
-		jo.put("ID", "ID goes here");
-		return jo;
-	}
-	
-	public JSONObject hello ()
-	{
-		JSONObject jo =  new JSONObject ();
-		jo.put("Result", "hello called");
-		jo.put("Error", "no errors now");
-		jo.put("ID", "ID goes here");
-		return jo;
-	}
-	
+	}	
 }
