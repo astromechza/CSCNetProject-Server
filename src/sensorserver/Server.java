@@ -22,8 +22,8 @@ public class Server {
 				ss = new ServerSocket(port);
 				Log.info("Listening on port " + port);
 			} catch (BindException e) {
-				Log.error("Failed to start server on port "+port+": "+e.toString());
-				Log.info("Attempting to use port " + (++port) + " instead");
+				Log.warning("Failed to start server on port "+port+": "+e.toString());
+				Log.debug("Attempting to use port " + (++port) + " instead");
 			} catch (IOException e) {
 				Log.critical("Failed to start server on port "+port+": "+e.toString());
 				return;

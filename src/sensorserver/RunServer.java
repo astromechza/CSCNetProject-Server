@@ -39,11 +39,6 @@ public class RunServer {
 			System.exit(0);
 		}
 		
-
-		Log.info("-------------------------");
-		Log.info("Initialising SensorServer");
-		Log.info("-------------------------");
-		
 		Log.info("Reading configuration file");
 		
 		Properties configuration = new Properties();
@@ -60,14 +55,8 @@ public class RunServer {
 			Log.info("Aborting");
 			System.exit(-1);
 		}
-		
+
 		Log.debug("configuration: " + configuration);		
-		
-		Log.info("Initialise database manager");		
-		
-		// INITIALISE DATABASE SINGLETON	
-		
-		
 		
 		// Test connection stuff
 		try 
@@ -76,21 +65,37 @@ public class RunServer {
 					configuration.getProperty("database_url"),
 					configuration.getProperty("database_user"),
 					configuration.getProperty("database_password"));
-			Database.getInstance().details();
+			
+			Database.getInstance().getConnection();
 		} 
 		catch (Exception e) 
 		{			
 			Log.critical(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
 			System.exit(-1);
 		}			
-
-		int port = Integer.parseInt(configuration.getProperty("preferred_port"));	
 		
-			
+		Log.info("Connected to Database and Logging to the `log` table.");
 
-		Log.debug("Starting socket listener");	
+		int port = Integer.parseInt(configuration.getProperty("preferred_port"));			
+
+		Log.debug("Starting socket listener.");	
 		
 		new Server(port);
+		
+		Log.info("Shutting down..");
+		
+		try 
+		{
+			Database.getInstance().getConnection().close();
+		} 
+		catch (SQLException e) 
+		{
+			e.printStackTrace();
+			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
+		}
+		
+		
+		
 	}
 
 }
