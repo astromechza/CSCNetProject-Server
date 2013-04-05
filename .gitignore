@@ -2,3 +2,4 @@
 *.db
 *.log
 bin/
+server.properties
