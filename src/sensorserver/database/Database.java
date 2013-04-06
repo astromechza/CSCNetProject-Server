@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.Map;
 
 import sensorserver.Utils;
 import sensorserver.log.Log;
@@ -22,6 +23,8 @@ public class Database
 	private String PASSWORD;
 	private String DRIVER = "com.mysql.jdbc.Driver";
 	private Connection activeConnection;
+	
+	
 	   
 	public Database(String url, String user, String password) throws SQLException
 	{
@@ -96,6 +99,7 @@ public class Database
 		Log.info("Number of Readings: " + count);		
 	}
 	
+	
 	public int insertReading(int groupId, String type, double value) throws SQLException{
 		PreparedStatement stmt = activeConnection.prepareStatement("INSERT INTO `readings` (group_id, reading_type, reading_value, created_at) VALUES (?, ?, ?, ?);");
 
@@ -122,7 +126,7 @@ public class Database
 			return newRows;		
 		}catch(SQLException e){
 			Log.error("SQL error in Database.insertLog. Failed to log action to database.");
-			e.printStackTrace();
+			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
 		}
 		
 		return null;

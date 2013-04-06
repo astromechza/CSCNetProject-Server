@@ -127,26 +127,24 @@ public class Log {
 		
 	}
 	
-	private static void dlog(LogLevel lvl, Object message)
-	{		
-		
-		try {
-			Connection c = Database.getInstance().getConnection();
-			
-			PreparedStatement ps = c.prepareStatement("INSERT INTO `logs` (group_id, action, created_at) VALUES (?,?,?);");
-			
-			ps.setInt(1, 1);
-			ps.setString(2, message.toString());
-			ps.setTimestamp(3, new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()));
-			ps.execute();			
-			
-		} catch (SQLException e) {
-			slog(LogLevel.WARNING, "Could not log to database! '" + message + "'");
-		}
-		
-		
-		
-	}
+	// Unused. Database logging is now done for explicit things
+//	private static void dlog(LogLevel lvl, Object message)
+//	{				
+//		try {
+//			Connection c = Database.getInstance().getConnection();
+//			
+//			PreparedStatement ps = c.prepareStatement("INSERT INTO `logs` (group_id, action, created_at) VALUES (?,?,?);");
+//			
+//			ps.setInt(1, 1);
+//			ps.setString(2, message.toString());
+//			ps.setTimestamp(3, new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()));
+//			ps.execute();			
+//			
+//		} catch (SQLException e) {
+//			slog(LogLevel.WARNING, "Could not log to database! '" + message + "'");
+//		}	
+//		
+//	}
 	
 	
 	// MORE STATIC METHODS
