@@ -11,6 +11,7 @@ public class BiMap<K, V> {
 	private final Map<K, V> keyValue;
 	private final Map<V, K> valueKey;
 	
+	public BiMap()
 	{
 		keyValue = new HashMap<K, V>();
 		valueKey = new HashMap<V, K>();

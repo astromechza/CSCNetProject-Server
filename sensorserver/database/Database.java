@@ -15,6 +15,7 @@ import sensorserver.log.Log;
 import sensorserver.models.IModel;
 import sensorserver.models.Reading;
 import sensorserver.models.ReadingType;
+import sensorserver.struct.BiMap;
 
 public class Database 
 {
@@ -27,6 +28,8 @@ public class Database
 	private String DRIVER = "com.mysql.jdbc.Driver";
 	private Connection activeConnection;
 	private List<IModel> storableTypes;
+
+	private BiMap<Integer, String> readingTypeCache;
 	
 	   
 	public Database(String url, String user, String password) throws SQLException
@@ -169,9 +172,12 @@ public class Database
 	}
 
 	
-	public int insertReading(int groupId, String type, double value) throws SQLException{
+	public int insertReading(int groupId, String type, double value, long time) throws SQLException{
+		
+		
+		
 		// construct reading object
-		Reading r = new Reading(Calendar.getInstance().getTimeInMillis(), value, groupId, 0);
+		Reading r = new Reading(time, value, groupId, 0);
 		
 		// prepare statement
 		PreparedStatement stmt = activeConnection.prepareStatement(r.insertStmt());

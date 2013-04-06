@@ -1,8 +1,6 @@
 package sensorserver;
 
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,95 +22,116 @@ import sensorserver.log.Log;
  * }
  * 
  */
-public class MessageHandler {
-	public static void consume(ClientInstance client, String message){
-		try{
-			JSONObject messageObj = new JSONObject(message);
-			String action = messageObj.getString("action");
-			
-			switch(action){
-				case "new_readings":
-					handleNewReadings(client, messageObj);
-					break;
-				case "query_readings":
-					handleQueryReadings(client, messageObj);
-					break;
-				case "query_logs":
-					handleQueryLogs(client, messageObj);
-					break;
-			}
-			
-		}catch(JSONException e){
-			Log.error("JSON error for message: "+message);
-			e.printStackTrace();
+public class MessageHandler 
+{
+	
+	public static JSONObject reply(JSONObject in) throws JSONException
+	{
+		
+		String action = in.getString("action");
+		
+		switch(action){
+			case "ping":
+				return handlePing(in);			
+			case "new_readings":
+				return handleNewReadings(in);
+			case "query_readings":
+				return handleQueryReadings(in);
+			case "query_logs":
+				return handleQueryLogs(in);
 		}
+		
+		return makeErrorJson(new Exception("Unknown action '"+action+"'"));
 	}
 	
-	/*
-	 * Called when a client sends new reading data in the following message format:
-	 * 
-	 * {
-	 * 		'group_id' 	=> 	(int) group_id,
-	 * 		'action' 	=>	'new_readings',
-	 * 		'params'	=>	{
-	 * 							'readings' =>	[ 
-	 * 												{ 'type' => 'humidity', 'value' => 53.632 }
-	 * 												{ 'type' => 'humidity', 'value' => 34.32 }
-	 * 												{ 'type' => 'temperature', value => 26 }
-	 * 												{ ... }
-	 * 											]
-	 * 						}
-	 *  }	
+	/**
+	 * Handle a 'ping' command. Just reply with pong as soon as possible.
+	 * in = {"group_id":X,"action":"ping"}
+	 * out = {"result":"pong"}
 	 */
-	private static void handleNewReadings(ClientInstance client, JSONObject messageObj){
+	private static JSONObject handlePing(JSONObject in) 
+	{
+		JSONObject reply = new JSONObject();
+		reply.put("result", "pong");
+		return reply;
+	}
+	
+	/**
+	 * Called when a client wants to upload a set of readings
+	 * in = {
+	 * 			'group_id' 	=> 	(int) group_id,
+	 * 			'action' 	=>	'new_readings',
+	 * 			'params'	=>	{
+	 * 								'readings' =>	[ 
+	 * 													{ 'time' => milliseconds, 'type' => 'humidity', 'value' => 53.632 }
+	 * 													{ 'time' => milliseconds, 'type' => 'humidity', 'value' => 34.32 }
+	 * 													{ 'time' => milliseconds, 'type' => 'temperature', value => 26 }
+	 * 													{ ... }
+	 * 												]
+	 * 							}
+	 * 		}
+	 */
+	private static JSONObject handleNewReadings(JSONObject in) 
+	{
+		JSONObject reply = new JSONObject();
+		
 		try{
-			int groupId = messageObj.getInt("group_id");
-			JSONArray readings = messageObj.getJSONObject("params").getJSONArray("readings");
+			int groupId = in.getInt("group_id");
+			JSONArray readings = in.getJSONObject("params").getJSONArray("readings");
 			
 			int totalNewRows = 0;
 			for(int i = 0; i < readings.length(); i++){
 				JSONObject reading = readings.getJSONObject(i);
 				String type = reading.getString("type");
 				double value = reading.getDouble("value");
+				long time = reading.getLong("time");
+							
 				
 				Database d = Database.getInstance();
-				totalNewRows += d.insertReading(groupId, type, value);
+				
+				totalNewRows += d.insertReading(groupId, type, value, time);
 			}
 			
-			client.write(buildSuccessMessage(totalNewRows+" records logged."));
+			reply.put("result", totalNewRows+" records logged.");
 		
 		}catch(JSONException e){
-			Log.error("JSON Error in MessageHandler.handleNewReadings.");
-			e.printStackTrace();
-			client.write(buildErrorMessage("Malformed JSON request."));
+			Log.error("JSON Error in MessageHandler.handleNewReadings." + Utils.fmtStackTrace(e.getStackTrace()));
+			reply = makeErrorJson(e);
 		}catch(SQLException e){
-			Log.error("SQL Error in MessageHandler.handleNewReadings.");
-			e.printStackTrace();
-			client.write(buildErrorMessage("SQL Error."));
+			Log.error("SQL Error in MessageHandler.handleNewReadings." + Utils.fmtStackTrace(e.getStackTrace()));
+			reply = makeErrorJson(e);
 		}
+		return reply;
+	}
+
+	
+	private static JSONObject handleQueryReadings(JSONObject in)
+	{
+		JSONObject reply = new JSONObject();
+		reply.put("result", "");
+		return reply;
 	}
 	
-	private static void handleQueryReadings(ClientInstance client, JSONObject messageObj){
-		
+	private static JSONObject handleQueryLogs(JSONObject in)
+	{
+		JSONObject reply = new JSONObject();
+		reply.put("result", "");
+		return reply;
 	}
 	
-	private static void handleQueryLogs(ClientInstance client, JSONObject messageObj){
-		
-	}	
-	
-	private static JSONObject buildSuccessMessage(String message){
-		Map<String, Object> m = new HashMap<String, Object>();
-		m.put("result", message);
-		return buildServerResponse(m);
+
+	/**
+	 * Build a reply message for an exception
+	 */
+	public static JSONObject makeErrorJson(Exception e)
+	{
+		JSONObject o = new JSONObject();
+		o.put("result", "");
+		o.put("error", e.getMessage());
+		return o;
 	}
 	
-	private static JSONObject buildErrorMessage(String message){
-		Map<String, Object> m = new HashMap<String, Object>();
-		m.put("error", message);
-		return buildServerResponse(m);
-	}
 	
-	private static JSONObject buildServerResponse(Map<String, Object> keyvals){
-		return new JSONObject(keyvals);
-	}
+	
+
 }

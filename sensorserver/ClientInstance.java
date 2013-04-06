@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import sensorserver.log.Log;
@@ -21,10 +22,7 @@ public class ClientInstance implements Runnable {
 	
 	public ClientInstance(Socket s){
 		socket = s;
-		setup();
-	}
-	
-	private void setup(){
+		
 		try{
 			close = false;
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -45,27 +43,45 @@ public class ClientInstance implements Runnable {
 			while(!close && (received = in.readLine()) != null)
 			{	
 				Log.debug("Received: " + received);
+				JSONObject inO, outO = null;
 				
-				// Deal with whatever we received.
-				MessageHandler.consume(this, received);
+				try
+				{
+					inO = new JSONObject(received);
+					outO = MessageHandler.reply(inO);
+				}
+				catch (JSONException e)
+				{
+					
+					outO = new JSONObject();
+					outO.put("result", "");
+					outO.put("error", e.getMessage());
+				}
+				
+				out.write(outO.toString());
+				out.println();
+				out.flush();
+				
 			}			
-		} catch (IOException e) {
-		} finally {
-			try {
+		} 
+		catch (IOException e) 
+		{
+			
+		} 
+		finally 
+		{
+			try 
+			{
 				in.close();
 				out.close();
 				socket.close();
-			} catch (IOException e) {
+			} 
+			catch (IOException e) 
+			{
 				// Nothing we can do here.
 			}
 		}
 		
 		Log.debug("Client disconnected.");		
-	}
-	
-	public void write(JSONObject jo){
-		out.write(jo.toString());
-		out.println();
-		out.flush();
 	}
 }

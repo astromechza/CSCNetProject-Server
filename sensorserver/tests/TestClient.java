@@ -12,45 +12,79 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class TestClient {
-	public static void main(String[] args){
-		new TestClient();
+	
+	
+	static String[] readingTypes  = new String[]{"temperature", "humidity", "light"};
+	static int[] readingMaxes = new int[]{40,100,100};
+	static int[] readingMins = new int[]{-20, 0,0};
+	
+	public static JSONObject randomReading()
+	{
+		int type = (int)Math.floor(Math.random()*readingTypes.length);
+		double value = (Math.random()*(readingMaxes[type]-readingMins[type]) + readingMins[type]);
+		long time = System.currentTimeMillis();
+		
+		JSONObject o = new JSONObject();
+		o.put("type", readingTypes[type]);
+		o.put("value", value);
+		o.put("time", time);
+		
+		return o;
+		
 	}
 	
-	public TestClient(){
+	public static void sendReadings(JSONArray batch)
+	{
+		Socket s=null;
 		try {
-			Socket s = new Socket("localhost", 3000);			
+			s = new Socket("localhost", 3000);
 			BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));			
-			PrintWriter out = new PrintWriter(s.getOutputStream(), true);			
+			PrintWriter out = new PrintWriter(s.getOutputStream(), true);	
 			
 			JSONObject o = new JSONObject();
 			o.put("action", "new_readings");
 			o.put("group_id", 1);
 			
 			JSONObject params = new JSONObject();
-			JSONArray readings = new JSONArray();
-			JSONObject reading = new JSONObject();
-			reading.put("type", "temperature");
-			reading.put("value", 56.07);
 			
-			readings.put(reading);
-			params.put("readings", readings);
+			params.put("readings", batch);
 			o.put("params", params);
-			
-			
-			System.out.println("Connected");
+			System.out.println(o.toString());
 			out.write(o.toString());
 			out.println();
-			out.flush();		
+			out.flush();
 			
-			int one = 1;			
-			while(one==1){
-				System.out.println(in.readLine());
-			}
+			System.out.println(in.readLine());
+			
+			
 			s.close();
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println(e);
+		}
+				
+	}
+	
+	
+	public static void main(String[] args)
+	{
+		JSONArray currentbatch = new JSONArray();
+		try 
+		{
+			while (true)
+			{
+				Thread.sleep(100);
+				currentbatch.put(randomReading());
+				if(currentbatch.length() >= 20)
+				{
+					sendReadings(currentbatch);
+					currentbatch = new JSONArray();
+				}
+			}			
+		} 
+		catch (InterruptedException e) 
+		{
+			System.out.println(e);
 		}
 	}
+	
 }
