@@ -178,12 +178,13 @@ public class Database
 		
 		// construct reading object
 		Reading r = new Reading(time, value, groupId, 0);
-		
+				
 		// prepare statement
 		PreparedStatement stmt = activeConnection.prepareStatement(r.insertStmt());
 		
 		// bind values to ?'s
 		r.bindToStatement(stmt);
+		
 		
 		// execute
 		int newRows = stmt.executeUpdate();

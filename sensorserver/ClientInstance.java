@@ -45,6 +45,8 @@ public class ClientInstance implements Runnable {
 				Log.debug("Received: " + received);
 				JSONObject inO, outO = null;
 				
+				long time_start = System.currentTimeMillis();
+				
 				try
 				{
 					inO = new JSONObject(received);
@@ -57,6 +59,12 @@ public class ClientInstance implements Runnable {
 					outO.put("result", "");
 					outO.put("error", e.getMessage());
 				}
+				
+				long time_end = System.currentTimeMillis();
+				
+				outO.put("elapsed", time_end-time_start);
+				
+				Log.debug(outO);
 				
 				out.write(outO.toString());
 				out.println();

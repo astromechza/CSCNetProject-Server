@@ -1,5 +1,6 @@
 package sensorserver;
 
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.json.JSONArray;
@@ -8,6 +9,7 @@ import org.json.JSONObject;
 
 import sensorserver.database.Database;
 import sensorserver.log.Log;
+import sensorserver.models.Reading;
 
 /*
  * This class receives the raw string sent by a client, parses it and determines what to
@@ -75,22 +77,35 @@ public class MessageHandler
 	{
 		JSONObject reply = new JSONObject();
 		
-		try{
+		try
+		{
+			// The group id TODO change to sensor_id
 			int groupId = in.getInt("group_id");
+			
 			JSONArray readings = in.getJSONObject("params").getJSONArray("readings");
 			
-			int totalNewRows = 0;
-			for(int i = 0; i < readings.length(); i++){
+			// prepare an insert statement for Readings table
+			PreparedStatement stmt = Database.getInstance().getConnection().prepareStatement(new Reading().insertStmt());
+			
+			for(int i = 0; i < readings.length(); i++)
+			{
 				JSONObject reading = readings.getJSONObject(i);
 				String type = reading.getString("type");
 				double value = reading.getDouble("value");
 				long time = reading.getLong("time");
-							
 				
-				Database d = Database.getInstance();
+				Reading r = new Reading(time, value, groupId, 1);
 				
-				totalNewRows += d.insertReading(groupId, type, value, time);
+				r.bindToStatement(stmt);
+				
+				//add to batch
+				stmt.addBatch();														
 			}
+			
+			// Calculate the number of inserted rows
+			int totalNewRows = 0;
+			int [] changes = stmt.executeBatch();
+			for (int u : changes) totalNewRows += u;
 			
 			reply.put("result", totalNewRows+" records logged.");
 		
