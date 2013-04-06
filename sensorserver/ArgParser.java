@@ -122,6 +122,7 @@ public class ArgParser
 
 	public boolean hasFlag(String name)
 	{
+		if (!name.startsWith("--")) name = "--" + name;
 		return(actualFlags.contains(name));
 		
 	}

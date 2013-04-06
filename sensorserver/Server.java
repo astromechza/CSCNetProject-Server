@@ -32,15 +32,17 @@ public class Server {
 	}
 	
 	private void run(){
-		while(true){
-			try {
+		while(true)
+		{
+			try 
+			{
 				Socket s = ss.accept();
 				Log.debug("Client connected.");
 				new ClientInstance(s);
 				
 			} catch (IOException e) {
-				System.err.println("Failed to accept client connection.");
-				e.printStackTrace();
+				Log.error("Failed to accept client connection.");
+				Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
 			}			
 		}
 	}	

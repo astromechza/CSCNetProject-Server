@@ -75,8 +75,9 @@ public class RunServer {
 			System.exit(-1);
 		}			
 		
-		if(!Database.getInstance().hasCorrectTables() || args.hasFlag("clean")) 
+		if( (!Database.getInstance().hasCorrectTables()) || args.hasFlag("rebuild")) 
 		{
+			Log.info("Rebuilding database:");
 			Database.getInstance().recreate();
 		}
 		
@@ -86,7 +87,7 @@ public class RunServer {
 
 		int port = Integer.parseInt(configuration.getProperty("preferred_port"));			
 
-		Log.debug("Starting socket listener.");	
+		Log.info("Starting socket listener.");	
 		
 		new Server(port);
 		
