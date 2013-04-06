@@ -40,6 +40,10 @@ public class RunServer {
 			System.exit(0);
 		}
 		
+		Log.info("--------------------------");
+		Log.info(" Starting SensorServer ");
+		Log.info("--------------------------");
+		
 		Log.info("Reading configuration file");
 		
 		Properties configuration = new Properties();
@@ -52,8 +56,7 @@ public class RunServer {
 			configuration.load(new FileInputStream(path));
 			
 		} catch (IOException | URISyntaxException e) {
-			Log.critical(e.getMessage());
-			Log.info("Aborting");
+			Log.critical("Aborting: " + e +  " " + Utils.fmtStackTrace(e.getStackTrace()));
 			System.exit(-1);
 		}
 
@@ -81,10 +84,6 @@ public class RunServer {
 			Database.getInstance().recreate();
 		}
 		
-		
-		
-		
-
 		int port = Integer.parseInt(configuration.getProperty("preferred_port"));			
 
 		Log.info("Starting socket listener.");	
@@ -93,6 +92,8 @@ public class RunServer {
 		
 		Log.info("Shutting down..");
 		
+		// This is never reached since the server does not shutdown nicely
+		// TODO: shutdown nicely
 		try 
 		{
 			Database.getInstance().getConnection().close();

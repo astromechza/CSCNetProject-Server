@@ -5,7 +5,9 @@ A Server designed to accept sensor data from multiple connected clients over TCP
 Clients may also request statistics, logs, and other data from the server which will be presented as graphs on the client side.
 
 ## How to Build
+```
 $ make
+```
 
 ## How to Run:
 ```
@@ -26,3 +28,4 @@ The server relies on a configuration file ```server.properties```. Use ```server
 --rebuild/-r    : Drop and recreate the database tables. 
 --help/-h       : Print this usage message. 
 ```
+

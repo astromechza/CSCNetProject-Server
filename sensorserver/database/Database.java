@@ -6,7 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -171,15 +170,19 @@ public class Database
 
 	
 	public int insertReading(int groupId, String type, double value) throws SQLException{
-		PreparedStatement stmt = activeConnection.prepareStatement("INSERT INTO `readings` (group_id, reading_type, reading_value, created_at) VALUES (?, ?, ?, ?);");
-
-		stmt.setInt(1, groupId);
-		stmt.setString(2, type);
-		stmt.setDouble(3, value);
-		stmt.setTimestamp(4, new Timestamp(Calendar.getInstance().getTimeInMillis()));
+		// construct reading object
+		Reading r = new Reading(Calendar.getInstance().getTimeInMillis(), value, groupId, 0);
+		
+		// prepare statement
+		PreparedStatement stmt = activeConnection.prepareStatement(r.insertStmt());
+		
+		// bind values to ?'s
+		r.bindToStatement(stmt);
+		
+		// execute
 		int newRows = stmt.executeUpdate();
 		
-		// Log this upload.
+		// Log this insert.
 		insertLog(groupId, "new_readings");
 		
 		return newRows;
@@ -187,11 +190,13 @@ public class Database
 	
 	public Integer insertLog(int groupId, String action){
 		try{
-			PreparedStatement stmt = activeConnection.prepareStatement("INSERT INTO `logs` (group_id, action, created_at) VALUES (?, ?, ?);");
-	
-			stmt.setInt(1, groupId);
-			stmt.setString(2, action);
-			stmt.setTimestamp(3, new Timestamp(Calendar.getInstance().getTimeInMillis()));
+			
+			sensorserver.models.Log l = new sensorserver.models.Log(groupId, action, Calendar.getInstance().getTimeInMillis());
+			
+			PreparedStatement stmt = activeConnection.prepareStatement(l.insertStmt());
+			
+			l.bindToStatement(stmt);
+			
 			int newRows = stmt.executeUpdate();
 			return newRows;		
 		}catch(SQLException e){
