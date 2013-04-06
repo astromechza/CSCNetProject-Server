@@ -91,10 +91,11 @@ public class MessageHandler
 			{
 				JSONObject reading = readings.getJSONObject(i);
 				String type = reading.getString("type");
+				int type_id = Database.getInstance().getType(type);
 				double value = reading.getDouble("value");
 				long time = reading.getLong("time");
 				
-				Reading r = new Reading(time, value, groupId, 1);
+				Reading r = new Reading(time, value, groupId, type_id);
 				
 				r.bindToStatement(stmt);
 				

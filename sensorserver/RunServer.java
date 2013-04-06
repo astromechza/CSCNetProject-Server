@@ -83,6 +83,10 @@ public class RunServer {
 			Log.info("Rebuilding database:");
 			Database.getInstance().recreate();
 		}
+		else
+		{
+			Database.getInstance().preloadTypes();
+		}
 		
 		int port = Integer.parseInt(configuration.getProperty("preferred_port"));			
 

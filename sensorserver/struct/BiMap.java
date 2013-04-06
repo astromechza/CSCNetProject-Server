@@ -40,5 +40,10 @@ public class BiMap<K, V> {
     {
         return (valueKey.get(value));
     }
+    
+    public String toString()
+    {
+    	return keyValue.toString();
+    }
 
 }

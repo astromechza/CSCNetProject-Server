@@ -55,6 +55,7 @@ public class Database
 		storableTypes.add(new ReadingType());
 		storableTypes.add(new sensorserver.models.Log());
 		
+		readingTypeCache = new BiMap<Integer, String>();
 		
 	}
 	
@@ -171,28 +172,69 @@ public class Database
 		return false;
 	}
 
-	
-	public int insertReading(int groupId, String type, double value, long time) throws SQLException{
+	/**
+	 * Preload the int-string reading_types from the database. 
+	 */
+	public void preloadTypes()
+	{
+		try {
+			Statement s = Database.getInstance().activeConnection.createStatement();			
+			ResultSet rs = s.executeQuery("SELECT * FROM reading_types;");
+			
+			while(rs.next())
+			{
+				int id = rs.getInt(1);
+				String name = rs.getString(2);
+				readingTypeCache.put(id, name);
+			}
+			
+			rs.close();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		
+		Log.debug(readingTypeCache);
+	}
 		
-		
-		// construct reading object
-		Reading r = new Reading(time, value, groupId, 0);
+	public synchronized int getType(String type)
+	{
+		Integer i = readingTypeCache.getKeyForValue(type);
+		if (i==null)
+		{
+			try
+			{
+				ReadingType rt = new ReadingType(type);
 				
-		// prepare statement
-		PreparedStatement stmt = activeConnection.prepareStatement(r.insertStmt());
+				PreparedStatement ps = Database.getInstance().activeConnection.prepareStatement(rt.insertStmt());
+				
+				rt.bindToStatement(ps);
+				
+				int count = ps.executeUpdate();
+				
+				if (count != 1) throw new SQLException();
+					
+				Statement s = Database.getInstance().activeConnection.createStatement();
+				ResultSet rs = s.executeQuery("SELECT LAST_INSERT_ID();");
+				rs.first();
+				int id = rs.getInt(1);
+				
+				readingTypeCache.put(id, type);		
+				
+				return id;
+			} 
+			catch (SQLException e)
+			{
+				Log.error("Could not insert new reading_type.");
+			}
+			return -1;
+			
+		}
+		else
+		{
+			return i.intValue();
+		}
 		
-		// bind values to ?'s
-		r.bindToStatement(stmt);
-		
-		
-		// execute
-		int newRows = stmt.executeUpdate();
-		
-		// Log this insert.
-		insertLog(groupId, "new_readings");
-		
-		return newRows;
 	}
 	
 	public Integer insertLog(int groupId, String action){
