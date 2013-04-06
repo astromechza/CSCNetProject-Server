@@ -6,8 +6,6 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import org.json.JSONObject;
-
 import sensorserver.log.Log;
 
 

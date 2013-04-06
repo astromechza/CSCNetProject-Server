@@ -42,9 +42,11 @@ public class TestClient {
 			out.println();
 			out.flush();		
 			
-			while(true){
+			int one = 1;			
+			while(one==1){
 				System.out.println(in.readLine());
 			}
+			s.close();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

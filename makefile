@@ -1,9 +1,8 @@
-
-CLASSPATH = "src/:src/sensorserver/:src/sensorserver/log/:src/sensorserver/database/"
-
 default: 
-	javac -g -d bin/ -cp $(CLASSPATH) src/sensorserver/RunServer.java
+	javac -g sensorserver/RunServer.java
 
 clean: 
-	find bin/ -type f -iname \*.class
-	find bin/ -type f -iname \*.class -delete
+	find . -type f -iname \*.class
+	find . -type f -iname \*.class -delete
+	find . -type f -iname \*.log
+	find . -type f -iname \*.log -delete
