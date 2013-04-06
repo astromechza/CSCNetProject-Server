@@ -7,11 +7,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Map;
+import java.util.List;
 
 import sensorserver.Utils;
 import sensorserver.log.Log;
+import sensorserver.models.IModel;
+import sensorserver.models.Reading;
+import sensorserver.models.ReadingType;
 
 public class Database 
 {
@@ -23,7 +27,7 @@ public class Database
 	private String PASSWORD;
 	private String DRIVER = "com.mysql.jdbc.Driver";
 	private Connection activeConnection;
-	
+	private List<IModel> storableTypes;
 	
 	   
 	public Database(String url, String user, String password) throws SQLException
@@ -43,6 +47,13 @@ public class Database
 			Log.critical(Utils.fmtStackTrace(e.getStackTrace()));
 			System.exit(-1);
 		}
+		
+		storableTypes = new ArrayList<IModel>();
+		storableTypes.add(new Reading());
+		storableTypes.add(new ReadingType());
+		storableTypes.add(new sensorserver.models.Log());
+		
+		
 	}
 	
 	// == singleton code ==
@@ -99,6 +110,65 @@ public class Database
 		Log.info("Number of Readings: " + count);		
 	}
 	
+	/**
+	 * Drop and recreate all the tables. This will detroy all information stored in the tables.
+	 */
+	public void recreate()
+	{
+		try
+		{
+			Statement s = activeConnection.createStatement();
+			
+			// for each known model, destroy its table
+			for (IModel m : storableTypes)
+			{
+				Log.debug("Dropping `" + m.tableName() + "` table.");
+				s.execute(m.dropIfEStmt());
+				Log.debug("Creating `" + m.tableName() + "` table.");
+				s.execute(m.createIfNEStmt());
+			}
+		}catch(SQLException e){
+			Log.error("SQL error when dropping tables.");
+			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
+		}	
+		
+	}
+
+	/**
+	 * Check to see whether all tables exist. 
+	 * TODO change this to hasCorrectSchema and use DESCRIBE() to check column defns.
+	 * @return whether all tables did exist.
+	 */
+	public boolean hasCorrectTables() 
+	{
+		Statement s = null;
+		// Separate try/catch for statement creation. We want createStatement() issues to be caught and exited on.
+		// but we don't want the SQLExceptions from the SELECT statements to be shown.
+		try
+		{
+			s = activeConnection.createStatement();					
+		}
+		catch(SQLException e)
+		{
+			Log.critical(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
+			System.exit(-1);
+		}
+		
+	
+		try
+		{
+			// Attempt to list the data in all the tables.
+			for (IModel m : storableTypes)
+			{
+				s.execute("SELECT * FROM " + m.tableName() + ";");
+			}
+			return true;
+			
+		} catch(SQLException e) { Log.debug(e); }
+		
+		return false;
+	}
+
 	
 	public int insertReading(int groupId, String type, double value) throws SQLException{
 		PreparedStatement stmt = activeConnection.prepareStatement("INSERT INTO `readings` (group_id, reading_type, reading_value, created_at) VALUES (?, ?, ?, ?);");
@@ -131,4 +201,8 @@ public class Database
 		
 		return null;
 	}
+
+	
+
+	
 }

@@ -13,29 +13,30 @@ import sensorserver.log.Log;
 
 public class RunServer {
 	
-	public static void main(String[] args) {
+	public static void main(String[] argarray) {
 		
 		Log.init();
 		
 		// create the argument parser
-		ArgParser a = new ArgParser();
-		a.AddFlag("debug", "Force the server into debug mode.");
-		a.AddFlag("help", "Print this usage message.");
-		a.AddOption("file", "Path to the file containing server properties. View example.server.properties for more information", "server.properties");
+		ArgParser args = new ArgParser();
+		args.AddFlag("debug", "Force the server into debug mode.");
+		args.AddFlag("rebuild", "Drop and recreate the database tables.");
+		args.AddFlag("help", "Print this usage message.");
+		args.AddOption("file", "Path to the file containing server properties. View example.server.properties for more information", "server.properties");
 				
 		try {
 			// Attempt to parse the command line arguments. Bail if any exceptions occur
-			a.parse(args);
+			args.parse(argarray);
 		} catch (Exception e) {
 			// Argument errors are critical
 			System.err.println(e.getMessage());
-			a.printUsage();							// print help string just in case
+			args.printUsage();							// print help string just in case
 			System.exit(-1);
 		}
 				
 		// handle --help option
-		if (a.hasFlag("--help")) {
-			a.printUsage();
+		if (args.hasFlag("--help")) {
+			args.printUsage();
 			System.exit(0);
 		}
 		
@@ -45,7 +46,7 @@ public class RunServer {
 		
 		try {
 			
-			String path = a.getOption("file");
+			String path = args.getOption("file");
 			path = new URI(path).normalize().getPath();
 			Log.debug("configuration file path = " + path);			
 			configuration.load(new FileInputStream(path));
@@ -74,7 +75,14 @@ public class RunServer {
 			System.exit(-1);
 		}			
 		
-		Log.info("Connected to Database and Logging to the `log` table.");
+		if(!Database.getInstance().hasCorrectTables() || args.hasFlag("clean")) 
+		{
+			Database.getInstance().recreate();
+		}
+		
+		
+		
+		
 
 		int port = Integer.parseInt(configuration.getProperty("preferred_port"));			
 
