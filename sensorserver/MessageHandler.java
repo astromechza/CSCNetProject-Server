@@ -108,6 +108,8 @@ public class MessageHandler
 			int [] changes = stmt.executeBatch();
 			for (int u : changes) totalNewRows += u;
 			
+			Database.getInstance().insertLog(groupId, "new_readings");
+			
 			reply.put("result", totalNewRows+" records logged.");
 		
 		}catch(JSONException e){

@@ -196,12 +196,14 @@ public class Database
 		
 		Log.debug(readingTypeCache);
 	}
-		
+	
+	
 	public synchronized int getType(String type)
 	{
 		Integer i = readingTypeCache.getKeyForValue(type);
 		if (i==null)
 		{
+			Log.debug("Reading type '"+type+"' not in cache/database.");
 			try
 			{
 				ReadingType rt = new ReadingType(type);
@@ -218,6 +220,8 @@ public class Database
 				ResultSet rs = s.executeQuery("SELECT LAST_INSERT_ID();");
 				rs.first();
 				int id = rs.getInt(1);
+				
+				Log.debug("Reading type '"+type+"' = " + id);
 				
 				readingTypeCache.put(id, type);		
 				
