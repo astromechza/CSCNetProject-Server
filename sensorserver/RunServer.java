@@ -106,9 +106,7 @@ public class RunServer {
 		{
 			e.printStackTrace();
 			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
-		}
-		
-		
+		}	
 		
 	}
 
