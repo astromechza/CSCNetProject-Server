@@ -17,14 +17,16 @@ public class Aggregator {
 
 	public static JSONArray getDataSummary(){
 		
-		if(requireNewGeneration())
+		// Only generate new summary if there have been new readings inserted.
+		if(requireNewGeneration()){
 			generateSummary();
+			lastGenerationTime = System.currentTimeMillis();
+		}
 		
 		return dataSummary;		
 	}
 	
-	private static boolean requireNewGeneration(){
-		
+	private static boolean requireNewGeneration(){		
 		try {
 			Statement s = Database.getInstance().getConnection().createStatement();		
 			// Get the time the last set of readings received.
@@ -32,10 +34,8 @@ public class Aggregator {
 			rs.first();
 			Timestamp time = rs.getTimestamp("time");
 			
-			if(lastGenerationTime < time.getTime())
-				return true;
+			return lastGenerationTime < time.getTime();
 		}catch (SQLException e) {
-
 			e.printStackTrace();
 		}
 		
@@ -54,7 +54,7 @@ public class Aggregator {
 				JSONObject set = new JSONObject();
 				int type_id = rs.getInt("type_id");
 				set.put("type_id", type_id);
-				set.put("avg", rs.getDouble("avg"));
+				set.put("mean", rs.getDouble("avg"));
 				set.put("min", rs.getDouble("min"));
 				set.put("max", rs.getDouble("max"));
 				set.put("stddev", rs.getDouble("stddev"));
@@ -99,10 +99,7 @@ public class Aggregator {
 				set.put("median", median);
 				
 				dataSummary.put(set);
-			}
-			
-			System.out.println(dataSummary.toString());
-			
+			}			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
