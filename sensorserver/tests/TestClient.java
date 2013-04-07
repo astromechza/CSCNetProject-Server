@@ -41,14 +41,13 @@ public class TestClient {
 			PrintWriter out = new PrintWriter(s.getOutputStream(), true);	
 			
 			JSONObject o = new JSONObject();
-			o.put("method", "data_summary");
-			// Group id 4+ represent random testing clients such a this.
-			o.put("group_id", 4);
+			o.put("method", "new_readings");
+			o.put("group_id", 1);
 			
-//			JSONObject params = new JSONObject();
-//			
-//			params.put("readings", batch);
-//			o.put("params", params);
+			JSONObject params = new JSONObject();
+			
+			params.put("readings", batch);
+			o.put("params", params);
 			System.out.println(o.toString());
 			out.write(o.toString());
 			out.println();
@@ -73,7 +72,11 @@ public class TestClient {
 			while (true)
 			{
 				Thread.sleep(500);
-				currentbatch.put(randomReading());
+				JSONObject o = randomReading();
+				
+				currentbatch.put(o);
+				System.out.println("Took reading: " + o.toString());
+				
 				if(currentbatch.length() >= 20)
 				{
 					sendReadings(currentbatch);
