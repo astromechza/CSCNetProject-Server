@@ -30,7 +30,7 @@ public class MessageHandler
 	public static JSONObject reply(JSONObject in) throws JSONException
 	{
 		
-		String action = in.getString("action");
+		String action = in.getString("method");
 		
 		switch(action){
 			case "ping":
