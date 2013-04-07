@@ -98,8 +98,6 @@ public class Log {
 		{
 			flog(lvl, message);
 			
-			lastLines.add(message.toString());
-			if (lastLines.size() > 20) lastLines.remove(0);
 			
 		}
 		
@@ -123,8 +121,11 @@ public class Log {
 		{
 			BufferedWriter bw = new BufferedWriter(new FileWriter(currentlogfile, true));
 			
-			bw.write(logdateformat.format(now) + " : " + lvl + " : " + message.toString() + "\n");
-			
+			String m = logdateformat.format(now) + " : " + lvl + " : " + message.toString();
+			bw.write( m + "\n");			
+
+			lastLines.add(m);
+			if (lastLines.size() > 20) lastLines.remove(0);
 			bw.close();
 		}
 		catch (IOException e)
