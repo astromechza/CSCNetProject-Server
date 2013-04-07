@@ -9,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import sensorserver.database.Database;
+import sun.rmi.runtime.Log;
 
 public class Aggregator {
 	
@@ -31,12 +32,20 @@ public class Aggregator {
 			Statement s = Database.getInstance().getConnection().createStatement();		
 			// Get the time the last set of readings received.
 			ResultSet rs = s.executeQuery("SELECT time FROM logs WHERE action = 'new_readings' ORDER BY id DESC LIMIT 1");
-			rs.first();
-			Timestamp time = rs.getTimestamp("time");
 			
-			return lastGenerationTime < time.getTime();
+			// just make sure
+			if (rs.first())
+			{
+				Timestamp time = rs.getTimestamp("time");
+				
+				return lastGenerationTime < time.getTime();
+			}
+			else
+			{
+				return true;
+			}
 		}catch (SQLException e) {
-			e.printStackTrace();
+			sensorserver.log.Log.error(e);
 		}
 		
 		return true;
@@ -101,7 +110,7 @@ public class Aggregator {
 				dataSummary.put(set);
 			}			
 		} catch (SQLException e) {
-			e.printStackTrace();
+			sensorserver.log.Log.error(e + " "  + Utils.fmtStackTrace(e.getStackTrace()));
 		}
 	}
 }
