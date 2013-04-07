@@ -3,9 +3,17 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.json.JSONArray;
 
 
 public class Log {
@@ -25,6 +33,8 @@ public class Log {
 	private static Date nextrotatetime = null;
 	private static SimpleDateFormat filenameformat = new SimpleDateFormat("yyyy-MM-dd");
 	private static SimpleDateFormat logdateformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+	
+	private static List<String> lastLines = new LinkedList<String>();
 	
 	// INITIALISE the log file
 	// Log files are rotated daily 
@@ -87,6 +97,10 @@ public class Log {
 		if (currentlogfile != null && lvl.ordinal() >= fileLevel.ordinal())
 		{
 			flog(lvl, message);
+			
+			lastLines.add(message.toString());
+			if (lastLines.size() > 20) lastLines.remove(0);
+			
 		}
 		
 		// I'm not entirely sure system debug information is the type of logging they want.
@@ -164,6 +178,18 @@ public class Log {
 	public static void critical(Object message)
 	{
 		log(LogLevel.CRITICAL, message);
+	}
+
+	public static JSONArray getLastLines() {
+		
+		
+		JSONArray a = new JSONArray();
+		for (String line : lastLines)
+		{
+			a.put(URLEncoder.encode(line));
+		}
+		
+		return a;
 	}
 
 }

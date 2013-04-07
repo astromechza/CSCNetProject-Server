@@ -43,6 +43,8 @@ public class MessageHandler
 				return handleQueryLogs(in);
 			case "data_summary":
 				return handleDataSummaryRequest(in);
+			case "last_log_lines":
+				return handleGetLastLinesFromCurrentLog();
 		}
 		
 		return makeErrorJson(new Exception("Unknown method '"+method+"'"));
@@ -145,6 +147,13 @@ public class MessageHandler
 		reply.put("data_summary", Aggregator.getDataSummary());
 		return reply;
 	}	
+	
+	private static JSONObject handleGetLastLinesFromCurrentLog()
+	{
+		JSONObject reply = new JSONObject();
+		reply.put("result", Log.getLastLines());
+		return reply;
+	}
 	
 
 	/**
