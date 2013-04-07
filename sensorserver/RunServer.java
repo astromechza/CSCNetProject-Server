@@ -17,7 +17,7 @@ public class RunServer {
 		
 		Log.init();
 		
-		// create the argument parser
+		// Create the argument parser
 		ArgParser args = new ArgParser();
 		args.AddFlag("debug", "Force the server into debug mode.");
 		args.AddFlag("rebuild", "Drop and recreate the database tables.");
