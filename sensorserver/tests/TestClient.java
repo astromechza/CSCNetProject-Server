@@ -41,7 +41,7 @@ public class TestClient {
 			PrintWriter out = new PrintWriter(s.getOutputStream(), true);	
 			
 			JSONObject o = new JSONObject();
-			o.put("action", "data_summary");
+			o.put("method", "data_summary");
 			// Group id 4+ represent random testing clients such a this.
 			o.put("group_id", 4);
 			

@@ -13,13 +13,13 @@ import sensorserver.models.Reading;
 
 /*
  * This class receives the raw string sent by a client, parses it and determines what to
- * do with it based on the 'action' key supplied in the message. 
+ * do with it based on the 'method' key supplied in the message. 
  * 
  * All messages must follow this structure:
  * 
  * {
  * 		'group_id' => (int),
- * 		'action' => (string),
+ * 		'method' => (string),
  * 		'params' => { 'any' => 'additional, 'parameters => 'go here' }
  * }
  * 
@@ -30,9 +30,9 @@ public class MessageHandler
 	public static JSONObject reply(JSONObject in) throws JSONException
 	{
 		
-		String action = in.getString("method");
+		String method = in.getString("method");
 		
-		switch(action){
+		switch(method){
 			case "ping":
 				return handlePing(in);			
 			case "new_readings":
@@ -45,12 +45,12 @@ public class MessageHandler
 				return handleDataSummaryRequest(in);
 		}
 		
-		return makeErrorJson(new Exception("Unknown action '"+action+"'"));
+		return makeErrorJson(new Exception("Unknown method '"+method+"'"));
 	}
 
 	/**
 	 * Handle a 'ping' command. Just reply with pong as soon as possible.
-	 * in = {"group_id":X,"action":"ping"}
+	 * in = {"group_id":X,"method":"ping"}
 	 * out = {"result":"pong"}
 	 */
 	private static JSONObject handlePing(JSONObject in) 
@@ -64,7 +64,7 @@ public class MessageHandler
 	 * Called when a client wants to upload a set of readings
 	 * in = {
 	 * 			'group_id' 	=> 	(int) group_id,
-	 * 			'action' 	=>	'new_readings',
+	 * 			'method' 	=>	'new_readings',
 	 * 			'params'	=>	{
 	 * 								'readings' =>	[ 
 	 * 													{ 'time' => milliseconds, 'type' => 'humidity', 'value' => 53.632 }
@@ -141,7 +141,7 @@ public class MessageHandler
 	
 	private static JSONObject handleDataSummaryRequest(JSONObject in) {
 		JSONObject reply = new JSONObject();
-		reply.put("action", "data_summary");
+		reply.put("method", "data_summary");
 		reply.put("data_summary", Aggregator.getDataSummary());
 		return reply;
 	}	
