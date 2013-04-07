@@ -198,7 +198,7 @@ public class Database
 	}
 	
 	
-	public synchronized int getType(String type)
+	public synchronized int getTypeIdFromStr(String type)
 	{
 		Integer i = readingTypeCache.getKeyForValue(type);
 		if (i==null)
@@ -240,6 +240,22 @@ public class Database
 		}
 		
 	}
+
+
+	public String getTypeFromId(int type) 
+	{
+		String s = readingTypeCache.getValueForKey(type);
+		if (s==null)
+		{
+			
+			return "unknown";
+			
+		}
+		else
+		{
+			return s;
+		}
+	}
 	
 	public Integer insertLog(int groupId, String action){
 		try{
@@ -259,6 +275,7 @@ public class Database
 		
 		return null;
 	}
+
 
 	
 

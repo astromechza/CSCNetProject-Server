@@ -9,7 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import sensorserver.database.Database;
-import sun.rmi.runtime.Log;
+import sensorserver.log.Log;
 
 public class Aggregator {
 	
@@ -22,6 +22,11 @@ public class Aggregator {
 		if(requireNewGeneration()){
 			generateSummary();
 			lastGenerationTime = System.currentTimeMillis();
+			Log.debug("New data summary created.");
+		}
+		else
+		{
+			Log.debug("Existing data summary is still valid.");
 		}
 		
 		return dataSummary;		
@@ -54,6 +59,8 @@ public class Aggregator {
 	private static void generateSummary(){
 		dataSummary = new JSONArray();
 		
+		Log.info("Generating new data summary.");
+		
 		try {
 			Statement s = Database.getInstance().getConnection().createStatement();
 			Statement s2 = Database.getInstance().getConnection().createStatement();
@@ -62,6 +69,8 @@ public class Aggregator {
 			while(rs.next()){
 				JSONObject set = new JSONObject();
 				int type_id = rs.getInt("type_id");
+				String type = Database.getInstance().getTypeFromId(type_id);
+				set.put("type", type);
 				set.put("type_id", type_id);
 				set.put("mean", rs.getDouble("avg"));
 				set.put("min", rs.getDouble("min"));

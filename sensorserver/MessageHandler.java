@@ -93,7 +93,7 @@ public class MessageHandler
 			{
 				JSONObject reading = readings.getJSONObject(i);
 				String type = reading.getString("type");
-				int type_id = Database.getInstance().getType(type);
+				int type_id = Database.getInstance().getTypeIdFromStr(type);
 				double value = reading.getDouble("value");
 				long time = reading.getLong("time");
 				
