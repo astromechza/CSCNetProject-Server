@@ -36,7 +36,7 @@ public class TestClient {
 	{
 		Socket s=null;
 		try {
-			s = new Socket("localhost", 3000);
+			s = new Socket("197.85.191.195", 3000);
 			BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));			
 			PrintWriter out = new PrintWriter(s.getOutputStream(), true);	
 			
@@ -71,7 +71,7 @@ public class TestClient {
 		{
 			while (true)
 			{
-				Thread.sleep(1000);
+				Thread.sleep(500);
 				currentbatch.put(randomReading());
 				if(currentbatch.length() >= 20)
 				{

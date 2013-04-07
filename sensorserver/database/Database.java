@@ -160,10 +160,10 @@ public class Database
 	
 		try
 		{
-			// Attempt to list the data in all the tables.
+			// Attempt to select something from each table.
 			for (IModel m : storableTypes)
 			{
-				s.execute("SELECT * FROM " + m.tableName() + ";");
+				s.execute("SELECT * FROM " + m.tableName() + " LIMIT 1;");
 			}
 			return true;
 			
