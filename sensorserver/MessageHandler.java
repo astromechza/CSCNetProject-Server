@@ -41,11 +41,13 @@ public class MessageHandler
 				return handleQueryReadings(in);
 			case "query_logs":
 				return handleQueryLogs(in);
+			case "data_summary":
+				return handleDataSummaryRequest(in);
 		}
 		
 		return makeErrorJson(new Exception("Unknown action '"+action+"'"));
 	}
-	
+
 	/**
 	 * Handle a 'ping' command. Just reply with pong as soon as possible.
 	 * in = {"group_id":X,"action":"ping"}
@@ -136,6 +138,13 @@ public class MessageHandler
 		reply.put("result", "");
 		return reply;
 	}
+	
+	private static JSONObject handleDataSummaryRequest(JSONObject in) {
+		JSONObject reply = new JSONObject();
+		reply.put("action", "data_summary");
+		reply.put("data_summary", Aggregator.getDataSummary());
+		return reply;
+	}	
 	
 
 	/**
