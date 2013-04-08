@@ -81,13 +81,21 @@ public class Aggregator {
 							"GROUP BY value " +
 							"ORDER BY c DESC LIMIT 1) ");
 				
-				String modes = "";
-				while(modeSet.next()){
-					modes += " "+modeSet.getString("value");
-				}
+				//String modes = "";
+				//while(modeSet.next()){
+				//	modes += " "+modeSet.getString("value");
+				//}
+				//modes.trim();	
+				//set.put("mode", modes);
 				
-				modes.trim();	
+				JSONArray modes = new JSONArray();
+				while(modeSet.next()){
+					modes.put(modeSet.getDouble("value"));
+				}
+
 				set.put("mode", modes);
+				
+				
 				modeSet.close();
 				
 				// ...median
@@ -109,6 +117,8 @@ public class Aggregator {
 				
 				double median = medianQuery.getDouble("median");
 				set.put("median", median);
+				
+				
 				
 				dataSummary.put(set);
 			}			
