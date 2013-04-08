@@ -86,7 +86,7 @@ public class TestClient {
 			params.put("types", types);
 			
 			// Last 2 days
-			params.put("time_to", new Timestamp(System.currentTimeMillis()-(1000*60*60*24*1)).toString());
+			params.put("time_from", new Timestamp(System.currentTimeMillis()-(1000*60*60*24*1)).toString());
 			
 			o.put("params", params);
 			System.out.println(o.toString());

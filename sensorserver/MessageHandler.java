@@ -185,21 +185,17 @@ public class MessageHandler
 			
 			if(params.has("types")){
 				JSONArray json_types = params.getJSONArray("types");
-				String types = json_types.join(",");
-				whereClause.add("reading_types.name IN("+types+")");
-				join = " INNER JOIN reading_types ON reading_types.id = readings.type_id";
+				if(json_types.length() > 0){
+					String types = json_types.join(",");
+					whereClause.add("reading_types.name IN("+types+")");
+				}
 			}	
 		
 		}
 		
 		// TODO: should probably move this into the Database class.
-		String query = "SELECT * FROM readings";
+		String query = "SELECT * FROM readings INNER JOIN reading_types ON reading_types.id = readings.type_id";
 		try {
-			
-			// Add our joins if we have any.
-			if(join != null){
-				query += join;
-			}
 			
 			// Combine our WHERE clauses into a string.
 			if(!whereClause.isEmpty()){
