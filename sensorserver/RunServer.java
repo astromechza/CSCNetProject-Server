@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import sensorserver.database.Database;
 import sensorserver.log.Log;
+import sensorserver.log.Log.LogLevel;
 
 
 
@@ -38,6 +39,12 @@ public class RunServer {
 		if (args.hasFlag("--help")) {
 			args.printUsage();
 			System.exit(0);
+		}
+		
+		// handle --debug option
+		if (args.hasFlag("--debug"))
+		{
+			Log.setLogLevel(LogLevel.DEBUG);
 		}
 		
 		Log.info("--------------------------");
@@ -80,7 +87,7 @@ public class RunServer {
 		
 		if( (!Database.getInstance().hasCorrectTables()) || args.hasFlag("rebuild")) 
 		{
-			Log.info("Rebuilding database:");
+			Log.info("Rebuilding database");
 			Database.getInstance().recreate();
 		}
 		else
