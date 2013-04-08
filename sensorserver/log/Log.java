@@ -3,12 +3,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,11 +21,10 @@ public class Log {
 	
 	// VARIABLES
 	
-	// LEVEL at which to log to System.out
-	private static LogLevel sysOutLevel = LogLevel.DEBUG;
+	// Log levels: both start out at INFO
+	private static LogLevel sysOutLevel = LogLevel.INFO;
+	private static LogLevel fileLevel = LogLevel.INFO;
 	
-	// LEVEL at which to send to the file
-	private static LogLevel fileLevel = LogLevel.DEBUG;
 	private static File currentlogfile = null;
 	private static Date nextrotatetime = null;
 	private static SimpleDateFormat filenameformat = new SimpleDateFormat("yyyy-MM-dd");
@@ -86,6 +82,12 @@ public class Log {
 		
 	}
 	
+	public static void setLogLevel(LogLevel l)
+	{
+		sysOutLevel = l;
+		fileLevel = l;
+	}
+	
 	// THE ALL IMPORTANT METHOD
 	public static void log(LogLevel lvl, Object message)
 	{
@@ -134,26 +136,6 @@ public class Log {
 		}
 		
 	}
-	
-	// Unused. Database logging is now done for explicit things
-//	private static void dlog(LogLevel lvl, Object message)
-//	{				
-//		try {
-//			Connection c = Database.getInstance().getConnection();
-//			
-//			PreparedStatement ps = c.prepareStatement("INSERT INTO `logs` (group_id, action, created_at) VALUES (?,?,?);");
-//			
-//			ps.setInt(1, 1);
-//			ps.setString(2, message.toString());
-//			ps.setTimestamp(3, new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis()));
-//			ps.execute();			
-//			
-//		} catch (SQLException e) {
-//			slog(LogLevel.WARNING, "Could not log to database! '" + message + "'");
-//		}	
-//		
-//	}
-	
 	
 	// MORE STATIC METHODS
 	public static void debug(Object message)
