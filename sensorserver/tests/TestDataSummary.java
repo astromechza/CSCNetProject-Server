@@ -31,8 +31,7 @@ public class TestDataSummary {
 			out.println();
 			out.flush();
 			
-			System.out.println(in.readLine());
-			
+			System.out.println(in.readLine());		
 			
 			s.close();
 		} catch (IOException e) {

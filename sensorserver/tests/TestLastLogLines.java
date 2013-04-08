@@ -41,7 +41,7 @@ public class TestLastLogLines {
 			
 			for (int i=0;i<lines.length();i++)
 			{
-				System.out.println(URLDecoder.decode(lines.getString(i)));
+				System.out.println(URLDecoder.decode(lines.getString(i),"UTF-8"));
 			}
 			
 			

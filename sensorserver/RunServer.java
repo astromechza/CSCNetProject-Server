@@ -101,10 +101,12 @@ public class RunServer {
 		
 		new Server(port);
 		
-		Log.info("Shutting down..");
-		
+
 		// This is never reached since the server does not shutdown nicely
 		// TODO: shutdown nicely
+		
+		Log.info("Shutting down..");
+		
 		try 
 		{
 			Database.getInstance().getConnection().close();

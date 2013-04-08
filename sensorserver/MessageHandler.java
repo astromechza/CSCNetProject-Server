@@ -44,6 +44,8 @@ public class MessageHandler
 		String method = in.getString("method");		
 		int groupId = in.getInt("group_id");
 		
+		Log.info("Processing `" + method +"` call from group " + groupId);
+				
 		switch(method){
 			case "ping":
 				Database.getInstance().insertLog(groupId, "ping");

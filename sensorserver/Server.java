@@ -37,7 +37,6 @@ public class Server {
 			try 
 			{
 				Socket s = ss.accept();
-				Log.info("Client connected (" + s.getInetAddress() + ":" + s.getPort() + ").");
 				new ClientInstance(s);
 				
 			} catch (IOException e) {

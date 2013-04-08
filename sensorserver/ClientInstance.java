@@ -35,10 +35,13 @@ public class ClientInstance implements Runnable {
 
 	@Override
 	public void run() {	
-		String received;
+		String received;		
+
+		Log.info("Client (" + socket.getRemoteSocketAddress() + ":" + socket.getPort() + ") connected.");
 		
 		try {
-			// read everything
+			
+			// read and process each line individually
 			while(!close && (received = in.readLine()) != null)
 			{	
 				Log.debug("Received: " + received);
@@ -49,6 +52,9 @@ public class ClientInstance implements Runnable {
 				try
 				{
 					inO = new JSONObject(received);
+					
+					
+					
 					outO = MessageHandler.reply(inO);
 				}
 				catch (JSONException e)
@@ -62,10 +68,11 @@ public class ClientInstance implements Runnable {
 				long time_end = System.currentTimeMillis();
 				
 				outO.put("elapsed", time_end-time_start);
+				String outS = outO.toString();
+								
+				Log.debug("Sent: " + outS);
 				
-				Log.debug(outO);
-				
-				out.write(outO.toString());
+				out.write(outS);
 				out.println();
 				out.flush();
 				
@@ -89,6 +96,6 @@ public class ClientInstance implements Runnable {
 			}
 		}
 		
-		Log.info("Client disconnected.");		
+		Log.info("Client (" + socket.getRemoteSocketAddress() + ":" + socket.getPort() + ") disconnected.");	
 	}
 }

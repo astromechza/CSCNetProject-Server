@@ -10,12 +10,18 @@ import java.net.Socket;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import sensorserver.ArgParser;
+
 public class TestReadingUpload {
 	
 	
 	static String[] readingTypes  = new String[]{"temperature", "humidity", "light"};
 	static int[] readingMaxes = new int[]{40,100,100};
 	static int[] readingMins = new int[]{-20, 0,0};
+	
+	static String host = "localhost";
+	static int port = 3000;
+	static int id = 1;
 	
 	public static JSONObject randomReading()
 	{
@@ -36,14 +42,13 @@ public class TestReadingUpload {
 	{
 		Socket s=null;
 		try {
-			//s = new Socket("197.85.191.195", 3000);
-			s = new Socket("localhost", 3000);
+			s = new Socket(host, port);
 			BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));			
 			PrintWriter out = new PrintWriter(s.getOutputStream(), true);	
 			
 			JSONObject o = new JSONObject();
 			o.put("method", "new_readings");
-			o.put("group_id", 1);
+			o.put("group_id", id);
 			
 			JSONObject params = new JSONObject();
 			
@@ -61,8 +66,24 @@ public class TestReadingUpload {
 		}				
 	}
 	
-	public static void main(String[] args)
+	public static void main(String[] argsarray)
 	{
+		ArgParser args = new ArgParser();
+		args.AddOption("host", "The host to connect to", "localhost");
+		args.AddOption("port", "The remote port", "3000");
+		args.AddOption("id", "The group ID to use","1");	
+		
+		try {
+			args.parse(argsarray);
+			
+			host = args.getOption("host");
+			port = Integer.parseInt(args.getOption("port"));
+			id = Integer.parseInt(args.getOption("id"));			
+			
+		} catch (Exception e1) {
+			e1.printStackTrace();
+			System.exit(-1);
+		}
 
 		JSONArray currentbatch = new JSONArray();
 		try 

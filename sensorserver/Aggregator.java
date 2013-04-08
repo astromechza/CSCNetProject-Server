@@ -20,9 +20,9 @@ public class Aggregator {
 		
 		// Only generate new summary if there have been new readings inserted.
 		if(requireNewGeneration()){
+			Log.debug("Creating new data summary");
 			generateSummary();
 			lastGenerationTime = System.currentTimeMillis();
-			Log.debug("New data summary created.");
 		}else{
 			Log.debug("Existing data summary is still valid.");
 		}
