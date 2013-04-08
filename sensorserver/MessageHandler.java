@@ -1,7 +1,11 @@
 package sensorserver;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,22 +32,36 @@ public class MessageHandler
 {
 	
 	public static JSONObject reply(JSONObject in) throws JSONException
-	{
+	{		
+		if(!in.has("group_id")){
+			return makeErrorJson(new Exception("No group ID supplied."));
+		}
 		
-		String method = in.getString("method");
+		if(!in.has("method")){
+			return makeErrorJson(new Exception("No method supplied."));
+		}
+		
+		String method = in.getString("method");		
+		int groupId = in.getInt("group_id");
 		
 		switch(method){
 			case "ping":
+				Database.getInstance().insertLog(groupId, "ping");
 				return handlePing(in);			
 			case "new_readings":
+				Database.getInstance().insertLog(groupId, "new_readings");
 				return handleNewReadings(in);
 			case "query_readings":
+				Database.getInstance().insertLog(groupId, "query_readings");
 				return handleQueryReadings(in);
 			case "query_logs":
+				Database.getInstance().insertLog(groupId, "new_logs");
 				return handleQueryLogs(in);
 			case "data_summary":
+				Database.getInstance().insertLog(groupId, "data_summary");
 				return handleDataSummaryRequest(in);
 			case "last_log_lines":
+				Database.getInstance().insertLog(groupId, "last_log_lines");
 				return handleGetLastLinesFromCurrentLog();
 		}
 		
@@ -112,8 +130,6 @@ public class MessageHandler
 			int [] changes = stmt.executeBatch();
 			for (int u : changes) totalNewRows += u;
 			
-			Database.getInstance().insertLog(groupId, "new_readings");
-			
 			reply.put("result", totalNewRows+" records logged.");
 		
 		}catch(JSONException e){
@@ -127,11 +143,103 @@ public class MessageHandler
 	}
 
 	
+	/**
+	 * A client message to query the readings table. All filters in the "params" hash are optional.
+	 * in = {
+	 * 			'group_id' 	=> 	(int) group_id,
+	 * 			'method' 	=>	'query_readings',
+	 * 			'params'	=>	{
+	 * 								'group_ids' => [1,2,3...],
+	 * 								'time_from' => "<timestamp>",
+	 * 								'time_to'	=> "<timestamp>",
+	 * 								'types'		=> ['light', 'temperature', 'humidity']
+	 * 							}
+	 * 		}
+	 */	
 	private static JSONObject handleQueryReadings(JSONObject in)
-	{
+	{		
 		JSONObject reply = new JSONObject();
-		reply.put("result", "");
-		return reply;
+		ArrayList<String> whereClause = new ArrayList<String>(3);
+		String join = null;
+		
+		if(in.has("params")){
+			JSONObject params = in.getJSONObject("params");
+			
+			if(params.has("group_ids")){
+				JSONArray json_group_ids = params.getJSONArray("group_ids");
+				String group_ids = json_group_ids.join(",");
+				whereClause.add("sensor_id IN("+group_ids+")");
+			}
+			
+			if(params.has("time_from")){
+				// Convert it to ensure proper format.
+				Timestamp time_from = Timestamp.valueOf(params.getString("time_from"));
+				whereClause.add("time >= \""+time_from+"\"");
+			}
+			
+			if(params.has("time_to")){
+				// Convert it to ensure proper format.
+				Timestamp time_to = Timestamp.valueOf(params.getString("time_to"));
+				whereClause.add("time <= \""+time_to+"\"");
+			}
+			
+			if(params.has("types")){
+				JSONArray json_types = params.getJSONArray("types");
+				String types = json_types.join(",");
+				whereClause.add("reading_types.name IN("+types+")");
+				join = " INNER JOIN reading_types ON reading_types.id = readings.type_id";
+			}	
+		
+		}
+		
+		// TODO: should probably move this into the Database class.
+		String query = "SELECT * FROM readings";
+		try {
+			
+			// Add our joins if we have any.
+			if(join != null){
+				query += join;
+			}
+			
+			// Combine our WHERE clauses into a string.
+			if(!whereClause.isEmpty()){
+				StringBuilder whereQuery = new StringBuilder();
+	
+				for (String string : whereClause) {
+				    if (whereQuery.length() == 0) {
+				        whereQuery.append(" WHERE "+string+" ");
+				    }else{
+				    	whereQuery.append("AND "+string+" ");
+				    }
+				}
+				
+				query += whereQuery;
+			}
+
+			Statement s = Database.getInstance().getConnection().createStatement();
+			ResultSet rs = s.executeQuery(query);
+			
+			Log.debug("Ran query: "+query);
+			
+			JSONArray readings = new JSONArray();
+			
+			while(rs.next()){
+				JSONObject reading = new JSONObject();
+				reading.put("group_id", rs.getInt("sensor_id"));
+				reading.put("type", rs.getString("name"));
+				reading.put("value", rs.getDouble("value"));
+				reading.put("time", rs.getTimestamp("time"));
+				readings.put(reading);
+			}
+			
+			reply.put("method", "query_readings");
+			reply.put("result", readings);
+			
+			return reply;			
+		} catch (SQLException e) {
+			Log.error("SQL Error: "+e.getMessage()+" in query \""+query+"\"");
+			return makeErrorJson(e);
+		}
 	}
 	
 	private static JSONObject handleQueryLogs(JSONObject in)
@@ -144,7 +252,7 @@ public class MessageHandler
 	private static JSONObject handleDataSummaryRequest(JSONObject in) {
 		JSONObject reply = new JSONObject();
 		reply.put("method", "data_summary");
-		reply.put("data_summary", Aggregator.getDataSummary());
+		reply.put("result", Aggregator.getDataSummary());
 		return reply;
 	}	
 	

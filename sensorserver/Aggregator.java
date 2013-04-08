@@ -23,9 +23,7 @@ public class Aggregator {
 			generateSummary();
 			lastGenerationTime = System.currentTimeMillis();
 			Log.debug("New data summary created.");
-		}
-		else
-		{
+		}else{
 			Log.debug("Existing data summary is still valid.");
 		}
 		
@@ -38,15 +36,11 @@ public class Aggregator {
 			// Get the time the last set of readings received.
 			ResultSet rs = s.executeQuery("SELECT time FROM logs WHERE action = 'new_readings' ORDER BY id DESC LIMIT 1");
 			
-			// just make sure
-			if (rs.first())
-			{
-				Timestamp time = rs.getTimestamp("time");
-				
+			// Ensure there is at least one log entry.
+			if (rs.first())	{
+				Timestamp time = rs.getTimestamp("time");				
 				return lastGenerationTime < time.getTime();
-			}
-			else
-			{
+			}else{
 				return true;
 			}
 		}catch (SQLException e) {
