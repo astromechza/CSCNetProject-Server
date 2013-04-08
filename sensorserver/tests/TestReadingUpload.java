@@ -10,7 +10,7 @@ import java.net.Socket;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class TestClient {
+public class TestReadingUpload {
 	
 	
 	static String[] readingTypes  = new String[]{"temperature", "humidity", "light"};
