@@ -29,8 +29,7 @@ public class ClientInstance implements Runnable {
 			out = new PrintWriter(socket.getOutputStream(), true);
 			new Thread(this).start();
 		}catch(IOException e){
-			System.err.println("Error setting up input-output streams for client.");
-			e.printStackTrace();
+			Log.error("Error setting up input-output streams: " + e + " " + Utils.fmtStackTrace(e.getStackTrace()));
 		}
 	}
 
@@ -90,6 +89,6 @@ public class ClientInstance implements Runnable {
 			}
 		}
 		
-		Log.debug("Client disconnected.");		
+		Log.info("Client disconnected.");		
 	}
 }
