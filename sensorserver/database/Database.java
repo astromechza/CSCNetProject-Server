@@ -209,10 +209,10 @@ public class Database
 	 * 
 	 * Synchronized to avoid 2 clients adding the same type at the same time.
 	 */
-	public synchronized int getTypeIdFromStr(String type)
+	public synchronized int getTypeIdFromStr(String type, boolean createIfNotExist)
 	{
 		Integer i = readingTypeCache.getKeyForValue(type);
-		if (i==null)
+		if (i==null && createIfNotExist)
 		{
 			Log.debug("Reading type '"+type+"' not in cache/database.");
 			try
@@ -242,14 +242,14 @@ public class Database
 			{
 				Log.error("Could not insert new reading_type.");
 			}
-			return -1;
 			
 		}
 		else
 		{
 			return i.intValue();
 		}
-		
+
+		return -1;
 	}
 
 	/**

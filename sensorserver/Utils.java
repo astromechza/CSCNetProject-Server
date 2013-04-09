@@ -1,5 +1,10 @@
 package sensorserver;
 
+import java.sql.Timestamp;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class Utils 
 {
 	public static String fmtStackTrace(StackTraceElement[] st)
@@ -11,5 +16,18 @@ public class Utils
 			out+=st[i];
 		}
 		return out;
+	}
+	
+	public static Timestamp readJSONTimefield(JSONObject o, String fieldname) throws JSONException
+	{
+		Object tobj = o.get(fieldname);
+		if (tobj instanceof String)
+		{
+			return Timestamp.valueOf((String) tobj);
+		}
+		else
+		{
+			return new Timestamp((long)tobj);
+		}
 	}
 }
