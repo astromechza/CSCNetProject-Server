@@ -21,6 +21,15 @@ public class OnDemandAggregator
 	
 	/**
 	 * 
+	 * Possible aggregations are:
+	 * - COUNT 				"count"
+	 * - MEAN 				"mean" or "average" or "avg"
+	 * - MINIMUM 			"min" or "minimum"
+	 * - MAXIMUM 			"max" or "maximum"
+	 * - STANDARD DEVIATION "std" or "stddev" or "stddeviation" or "standarddeviation"
+	 * - MODE 				"mode"
+	 * - MEDIAN 			"median"
+	 * 
 	 * @param parameters
 	 * A JSONObject like:
 	 * {
@@ -29,7 +38,7 @@ public class OnDemandAggregator
 	 *     "params" : {
 	 *         "aggregation" : "mean"
 	 *         "type" : "temperature"
-	 *         "group_id" : X
+	 *         "group_id" : X (optional)
 	 *         "time_from" : "ISO time" (optional)
 	 *         "time_to" : "ISO time" (optional)
 	 *     }
@@ -64,11 +73,11 @@ public class OnDemandAggregator
 			timeTo = Utils.readJSONTimefield(parameters, "time_to");
 		}
 		
-		//process group/sensor id
-		int aggre_group_id = -1;
+		//process sensor id
+		int aggre_sensor_id = -1;
 		if(parameters.has("group_id"))
 		{
-			aggre_group_id = parameters.getInt("group_id");
+			aggre_sensor_id = parameters.getInt("group_id");
 		}
 		
 		
@@ -78,26 +87,26 @@ public class OnDemandAggregator
 		switch(aggregationMethod)
 		{
 			case "count":
-				return SQLAggregationFunction(SQLAFUNC.COUNT, typeId, aggre_group_id, timeFrom, timeTo);
+				return SQLAggregationFunction(SQLAFUNC.COUNT, typeId, aggre_sensor_id, timeFrom, timeTo);
 			case "mean":
 			case "average":
 			case "avg":
-				return SQLAggregationFunction(SQLAFUNC.AVG, typeId, aggre_group_id, timeFrom, timeTo);
+				return SQLAggregationFunction(SQLAFUNC.AVG, typeId, aggre_sensor_id, timeFrom, timeTo);
 			case "min":
 			case "minimum":
-				return SQLAggregationFunction(SQLAFUNC.MIN, typeId, aggre_group_id, timeFrom, timeTo);
+				return SQLAggregationFunction(SQLAFUNC.MIN, typeId, aggre_sensor_id, timeFrom, timeTo);
 			case "max":
 			case "maximum":
-				return SQLAggregationFunction(SQLAFUNC.MAX, typeId, aggre_group_id, timeFrom, timeTo);
+				return SQLAggregationFunction(SQLAFUNC.MAX, typeId, aggre_sensor_id, timeFrom, timeTo);
 			case "std":
 			case "stddev":
 			case "stddeviation":
 			case "standarddeviation":
-				return SQLAggregationFunction(SQLAFUNC.STDDEV, typeId, aggre_group_id, timeFrom, timeTo);
+				return SQLAggregationFunction(SQLAFUNC.STDDEV, typeId, aggre_sensor_id, timeFrom, timeTo);
 			case "mode":
-				return aggregateMode(typeId, aggre_group_id, timeFrom, timeTo);			
+				return aggregateMode(typeId, aggre_sensor_id, timeFrom, timeTo);			
 			case "median":
-				return aggregateMedian(typeId, aggre_group_id, timeFrom, timeTo);		
+				return aggregateMedian(typeId, aggre_sensor_id, timeFrom, timeTo);		
 			default:
 				return new JSONObject().put("error", "Unsupported aggregation method '" + aggregationMethod + "'");
 		}
