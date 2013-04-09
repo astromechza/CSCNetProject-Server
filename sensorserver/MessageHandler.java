@@ -65,6 +65,9 @@ public class MessageHandler
 			case "last_log_lines":
 				Database.getInstance().insertLog(groupId, "last_log_lines");
 				return handleGetLastLinesFromCurrentLog();
+			case "aggregate":
+				Database.getInstance().insertLog(groupId, "aggregation");
+				return OnDemandAggregator.aggregate(in);
 		}
 		
 		return makeErrorJson(new Exception("Unknown method '"+method+"'"));
