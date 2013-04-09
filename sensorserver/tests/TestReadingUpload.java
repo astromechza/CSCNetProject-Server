@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.sql.Timestamp;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -29,10 +30,12 @@ public class TestReadingUpload {
 		double value = (Math.random()*(readingMaxes[type]-readingMins[type]) + readingMins[type]);
 		long time = System.currentTimeMillis();
 		
+		Timestamp ts = new Timestamp(time);
+		
 		JSONObject o = new JSONObject();
 		o.put("type", readingTypes[type]);
 		o.put("value", value);
-		o.put("time", time);
+		o.put("time", ts.toString());
 		
 		return o;
 		

@@ -117,7 +117,19 @@ public class MessageHandler
 				String type = reading.getString("type");
 				int type_id = Database.getInstance().getTypeIdFromStr(type);
 				double value = reading.getDouble("value");
-				long time = reading.getLong("time");
+				
+				Object tvalue = reading.get("time");
+				
+				Timestamp time;
+				
+				if (tvalue instanceof String)
+				{
+					time = Timestamp.valueOf((String)tvalue);
+				}
+				else
+				{
+					time = new Timestamp((long)tvalue);
+				}
 				
 				Reading r = new Reading(time, value, groupId, type_id);
 				

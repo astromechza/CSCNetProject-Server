@@ -1,30 +1,38 @@
 package sensorserver.models;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
 public class Reading implements IModel
 {
-	private long time;
+	private Timestamp time;
 	private double value;
 	private int sensorId;
 	private int typeId;
 
 	public Reading() { }
 	
-	public Reading(long time, double value, int sensorId, int typeId) 
+	public Reading(Timestamp time, double value, int sensorId, int typeId) 
 	{
-		super();
 		this.time = time;
 		this.value = value;
 		this.sensorId = sensorId;
 		this.typeId = typeId;
 	}
 	
+	public Reading(long millis, double value, int sensorId, int typeId) 
+	{
+		this.time = new Timestamp(millis);
+		this.value = value;
+		this.sensorId = sensorId;
+		this.typeId = typeId;
+	}
+		
 	public void bindToStatement(PreparedStatement stmt) throws SQLException
 	{
-		stmt.setTimestamp(1, new Timestamp(time));
+		stmt.setTimestamp(1,time);
 		stmt.setDouble(2, value);
 		stmt.setInt(3, sensorId);
 		stmt.setInt(4, typeId);
