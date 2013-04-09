@@ -103,9 +103,9 @@ public class Log {
 			flog(lvl, message);			
 		}		
 
-		lastLines.add(logdateformat.format(new Date()) + " : " + lvl + " : " + message.toString());
+		String l =  message.toString();
+		lastLines.add(logdateformat.format(new Date()) + " : " + lvl + " : " + l.substring(0, (l.length() > 200)?200:l.length()));
 		if (lastLines.size() > 30) lastLines.remove(0);
-		
 	}
 	
 	private static void slog(LogLevel lvl, Object message)
