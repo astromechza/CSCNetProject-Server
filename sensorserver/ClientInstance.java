@@ -57,7 +57,7 @@ public class ClientInstance implements Runnable {
 					
 					outO = MessageHandler.reply(inO);
 				}
-				catch (JSONException e)
+				catch (Exception e)
 				{
 					
 					outO = new JSONObject();

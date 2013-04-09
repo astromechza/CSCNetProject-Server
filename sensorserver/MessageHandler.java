@@ -31,7 +31,7 @@ import sensorserver.models.Reading;
 public class MessageHandler 
 {
 	
-	public static JSONObject reply(JSONObject in) throws JSONException
+	public static JSONObject reply(JSONObject in) throws Exception
 	{		
 		if(!in.has("group_id")){
 			return makeErrorJson(new Exception("No group ID supplied."));
@@ -100,7 +100,7 @@ public class MessageHandler
 	 * 							}
 	 * 		}
 	 */
-	private static JSONObject handleNewReadings(JSONObject in) 
+	private static JSONObject handleNewReadings(JSONObject in)  throws Exception
 	{
 		JSONObject reply = new JSONObject();
 		
@@ -155,6 +155,9 @@ public class MessageHandler
 		}catch(SQLException e){
 			Log.error("SQL Error in MessageHandler.handleNewReadings." + Utils.fmtStackTrace(e.getStackTrace()));
 			reply = makeErrorJson(e);
+		}catch (Exception e){
+			Log.error("Unexpected Error in MessageHandler.handleNewReadings." + Utils.fmtStackTrace(e.getStackTrace()));
+			reply = makeErrorJson(e);
 		}
 		return reply;
 	}
@@ -173,7 +176,7 @@ public class MessageHandler
 	 * 							}
 	 * 		}
 	 */	
-	private static JSONObject handleQueryReadings(JSONObject in)
+	private static JSONObject handleQueryReadings(JSONObject in)  throws Exception
 	{		
 		JSONObject reply = new JSONObject();
 		ArrayList<String> whereClause = new ArrayList<String>(3);
@@ -255,20 +258,21 @@ public class MessageHandler
 		}
 	}
 	
-	private static JSONObject handleQueryLogs(JSONObject in)
+	private static JSONObject handleQueryLogs(JSONObject in) throws Exception
 	{
 		JSONObject reply = Database.getInstance().queryLogTable(in);
 		return reply;
 	}
 	
-	private static JSONObject handleDataSummaryRequest(JSONObject in) {
+	private static JSONObject handleDataSummaryRequest(JSONObject in) throws Exception
+	{
 		JSONObject reply = new JSONObject();
 		reply.put("method", "data_summary");
 		reply.put("result", Aggregator.getDataSummary());
 		return reply;
 	}	
 	
-	private static JSONObject handleGetLastLinesFromCurrentLog()
+	private static JSONObject handleGetLastLinesFromCurrentLog() throws Exception
 	{
 		JSONObject reply = new JSONObject();
 		reply.put("result", Log.getLastLines());
@@ -279,7 +283,7 @@ public class MessageHandler
 	/**
 	 * Build a reply message for an exception
 	 */
-	public static JSONObject makeErrorJson(Exception e)
+	public static JSONObject makeErrorJson(Exception e) throws Exception
 	{
 		JSONObject o = new JSONObject();
 		o.put("result", "");

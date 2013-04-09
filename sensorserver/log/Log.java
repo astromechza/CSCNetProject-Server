@@ -92,21 +92,20 @@ public class Log {
 	// THE ALL IMPORTANT METHOD
 	public static void log(LogLevel lvl, Object message)
 	{
+
+		
 		if (lvl.ordinal() >= sysOutLevel.ordinal())
 		{
 			slog(lvl, message);
-			
 		}
 		if (currentlogfile != null && lvl.ordinal() >= fileLevel.ordinal())
 		{
-			flog(lvl, message);
-			
-			
-		}
+			flog(lvl, message);			
+		}		
+
+		lastLines.add(logdateformat.format(new Date()) + " : " + lvl + " : " + message.toString());
+		if (lastLines.size() > 30) lastLines.remove(0);
 		
-		// I'm not entirely sure system debug information is the type of logging they want.
-		// More like HTTP-like logging such as requests. In our case uploads, downloads and queries.
-		//if (Database.getInstance() != null) dlog(lvl, message);
 	}
 	
 	private static void slog(LogLevel lvl, Object message)
@@ -127,8 +126,6 @@ public class Log {
 			String m = logdateformat.format(now) + " : " + lvl + " : " + message.toString();
 			bw.write( m + "\n");			
 
-			lastLines.add(m);
-			if (lastLines.size() > 20) lastLines.remove(0);
 			bw.close();
 		}
 		catch (IOException e)

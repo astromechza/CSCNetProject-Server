@@ -299,7 +299,7 @@ public class Database
 	 * @param in
 	 * @return
 	 */
-	public JSONObject queryLogTable(JSONObject in) 
+	public JSONObject queryLogTable(JSONObject in)   throws Exception
 	{
 		
 		//defaults

@@ -46,7 +46,7 @@ public class OnDemandAggregator
 	 * 
 	 * @return the result of the aggregation
 	 */
-	public static JSONObject aggregate(JSONObject in)
+	public static JSONObject aggregate(JSONObject in)  throws Exception
 	{
 		JSONObject parameters = in.getJSONObject("params");
 		
@@ -120,7 +120,7 @@ public class OnDemandAggregator
 	 * @param timeTo			To time								(optional, ignore = null)
 	 * @return
 	 */
-	private static JSONObject SQLAggregationFunction(SQLAFUNC function, int typeId, int sensor_id, Timestamp timeFrom, Timestamp timeTo) 
+	private static JSONObject SQLAggregationFunction(SQLAFUNC function, int typeId, int sensor_id, Timestamp timeFrom, Timestamp timeTo)  throws Exception 
 	{
 		// generate sql
 		String sql = "SELECT " + sqlFuncs[function.ordinal()] +"(value) FROM readings WHERE type_id = " + typeId + " ";			
@@ -155,7 +155,7 @@ public class OnDemandAggregator
 		
 	}
 	
-	private static JSONObject aggregateMode(int typeId, int sensor_id, Timestamp timeFrom, Timestamp timeTo)
+	private static JSONObject aggregateMode(int typeId, int sensor_id, Timestamp timeFrom, Timestamp timeTo)  throws Exception
 	{
 		// generate sql
 		String sql = "SELECT value, COUNT(value) as mode FROM readings WHERE type_id = " + typeId + " ";				
@@ -194,7 +194,7 @@ public class OnDemandAggregator
 		}
 	}
 	
-	private static JSONObject aggregateMedian(int typeId, int sensor_id, Timestamp timeFrom, Timestamp timeTo)
+	private static JSONObject aggregateMedian(int typeId, int sensor_id, Timestamp timeFrom, Timestamp timeTo)  throws Exception
 	{
 		// generate sql
 		
