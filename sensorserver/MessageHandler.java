@@ -57,7 +57,7 @@ public class MessageHandler
 				Database.getInstance().insertLog(groupId, "query_readings");
 				return handleQueryReadings(in);
 			case "query_logs":
-				Database.getInstance().insertLog(groupId, "new_logs");
+				Database.getInstance().insertLog(groupId, "query_logs");
 				return handleQueryLogs(in);
 			case "data_summary":
 				Database.getInstance().insertLog(groupId, "data_summary");
@@ -242,8 +242,7 @@ public class MessageHandler
 	
 	private static JSONObject handleQueryLogs(JSONObject in)
 	{
-		JSONObject reply = new JSONObject();
-		reply.put("result", "");
+		JSONObject reply = Database.getInstance().queryLogTable(in);
 		return reply;
 	}
 	

@@ -3,6 +3,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -169,7 +170,11 @@ public class Log {
 		JSONArray a = new JSONArray();
 		for (String line : lastLines)
 		{
-			a.put(URLEncoder.encode(line));
+			try {
+				a.put(URLEncoder.encode(line, "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				Log.error(e);
+			}
 		}
 		
 		return a;

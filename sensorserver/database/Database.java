@@ -6,10 +6,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import sensorserver.MessageHandler;
 import sensorserver.Utils;
 import sensorserver.log.Log;
 import sensorserver.models.IModel;
@@ -197,7 +203,12 @@ public class Database
 		Log.debug(readingTypeCache);
 	}
 	
-	
+	/**
+	 * Returns the type_id for a given type. If the type:type_id is not present in the cache, it is 
+	 * inserted into the database and the cache is updated.
+	 * 
+	 * Synchronized to avoid 2 clients adding the same type at the same time.
+	 */
 	public synchronized int getTypeIdFromStr(String type)
 	{
 		Integer i = readingTypeCache.getKeyForValue(type);
@@ -241,7 +252,9 @@ public class Database
 		
 	}
 
-
+	/**
+	 * Returns the type of a given type_id. If the type_id is not in the cache/database, it is unknown.
+	 */
 	public String getTypeFromId(int type) 
 	{
 		String s = readingTypeCache.getValueForKey(type);
@@ -257,10 +270,13 @@ public class Database
 		}
 	}
 	
+	/**
+	 * Insert an action line for the given group id
+	 */
 	public Integer insertLog(int groupId, String action){
 		try{
 			
-			sensorserver.models.Log l = new sensorserver.models.Log(groupId, action, Calendar.getInstance().getTimeInMillis());
+			sensorserver.models.Log l = new sensorserver.models.Log(groupId, action, new Timestamp(Calendar.getInstance().getTime().getTime()));
 			
 			PreparedStatement stmt = activeConnection.prepareStatement(l.insertStmt());
 			
@@ -276,7 +292,120 @@ public class Database
 		return null;
 	}
 
+	
+	
+	/**
+	 * 
+	 * @param in
+	 * @return
+	 */
+	public JSONObject queryLogTable(JSONObject in) 
+	{
+		
+		//defaults
+		Timestamp time_from = null;									
+		Timestamp time_to = null;		
+		long limit = 20;
+		List<Integer> group_ids = new ArrayList<Integer>();
+		
+		if(in.has("params"))
+		{
+			JSONObject params = in.getJSONObject("params");
+			
+			if (params.has("time_from"))
+			{
+				time_from = Timestamp.valueOf(params.getString("time_from"));
+			}
+			
+			if (params.has("time_to"))
+			{
+				time_to = Timestamp.valueOf(params.getString("time_to"));
+			}
+			
+			if (params.has("limit"))
+			{
+				long l = params.getLong("limit");
+				if (l >= 1) limit = l; 
+			}
+			
+			if (params.has("group_ids"))
+			{
+				JSONArray ids = params.getJSONArray("group_ids");
+				
+				for(int i=0;i<ids.length();i++)
+				{
+					group_ids.add(ids.getInt(i));
+				}
+				
+			}
+		}
+		
+		// Construct statement
+		String statement = "SELECT * FROM logs ";
+		
+		String whereClause = "";
+		if(time_from != null || time_to != null)
+		{
+			whereClause += "(";
+			
+			if(time_from != null) whereClause += "time >= '"+time_from+"' ";
+			if(time_to != null) whereClause += "time <= '"+time_to+"' ";
+			
+			whereClause += ") AND ";
+		}		
+		
+		if (group_ids.size()>0)
+		{
+			whereClause += "(";
 
+			for (int i=0;i<group_ids.size();i++)
+			{
+				if (i>0) whereClause += "OR ";
+				whereClause += "sensor_id = " + group_ids.get(i) + " ";			
+			}
+			
+			whereClause += ") ";
+		}
+		
+		if(whereClause.length()>0) statement += "WHERE " + whereClause;
+		
+		statement += "ORDER BY id DESC LIMIT " + limit + ";";
+		
+		JSONObject reply = new JSONObject();
+		
+		// now do actual query
+		try 
+		{
+			
+			int lineCount = 0;
+			JSONArray lines = new JSONArray();
+			
+			Statement sql = Database.getInstance().activeConnection.createStatement();
+			ResultSet rows = sql.executeQuery(statement);
+			
+			while(rows.next())
+			{
+				lineCount += 1;
+				sensorserver.models.Log l = new sensorserver.models.Log(rows);
+				
+				lines.put(l.toJSON());
+			}
+			
+			reply.put("result", new JSONObject().put("line_count", lineCount).put("lines", lines));
+			
+			
+		} 
+		catch (SQLException e) 
+		{
+			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
+			return MessageHandler.makeErrorJson(e);
+		}		
+		
+		return reply;
+	}
+
+	
+	
 	
 
 	
