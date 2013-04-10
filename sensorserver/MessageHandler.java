@@ -153,6 +153,10 @@ public class MessageHandler
 					for (int u : changes) totalNewRows += u;					
 				}
 			}			
+			Log.debug("Completed " + readings.length());
+			int [] changes = stmt.executeBatch();
+			for (int u : changes) totalNewRows += u;	
+			
 			reply.put("result", totalNewRows+" records logged.");
 		
 		}catch(JSONException e){
