@@ -93,18 +93,19 @@ public class Log {
 	public static void log(LogLevel lvl, Object message)
 	{
 
+		String l =  message.toString();
+		if (lvl.ordinal() < LogLevel.ERROR.ordinal() && l.length() > 200) l = l.substring(0, 200) + "...";
 		
 		if (lvl.ordinal() >= sysOutLevel.ordinal())
 		{
-			slog(lvl, message);
+			slog(lvl, l);
 		}
 		if (currentlogfile != null && lvl.ordinal() >= fileLevel.ordinal())
 		{
-			flog(lvl, message);			
+			flog(lvl, l);			
 		}		
 
-		String l =  message.toString();
-		lastLines.add(logdateformat.format(new Date()) + " : " + lvl + " : " + l.substring(0, (l.length() > 200)?200:l.length()));
+		lastLines.add(logdateformat.format(new Date()) + " : " + lvl + " : " + l);
 		if (lastLines.size() > 30) lastLines.remove(0);
 	}
 	

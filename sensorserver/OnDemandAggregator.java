@@ -229,8 +229,7 @@ public class OnDemandAggregator
 				
 				double value = rs.getDouble(1);
 				
-				return new JSONObject()
-					.put("result", value);
+				return new JSONObject().put("result", value);
 			}
 			else
 			{

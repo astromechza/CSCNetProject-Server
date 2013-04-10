@@ -111,8 +111,12 @@ public class MessageHandler
 			
 			JSONArray readings = in.getJSONObject("params").getJSONArray("readings");
 			
+			Log.info("Processing " + readings.length() + " readings." );
+			
 			// prepare an insert statement for Readings table
 			PreparedStatement stmt = Database.getInstance().getConnection().prepareStatement(new Reading().insertStmt());
+			
+			int totalNewRows = 0;
 			
 			for(int i = 0; i < readings.length(); i++)
 			{
@@ -138,15 +142,16 @@ public class MessageHandler
 				
 				r.bindToStatement(stmt);
 				
+				
 				//add to batch
-				stmt.addBatch();														
-			}
-			
-			// Calculate the number of inserted rows
-			int totalNewRows = 0;
-			int [] changes = stmt.executeBatch();
-			for (int u : changes) totalNewRows += u;
-			
+				stmt.addBatch();										
+				
+				if(i % 300 == 0)
+				{
+					int [] changes = stmt.executeBatch();
+					for (int u : changes) totalNewRows += u;					
+				}
+			}			
 			reply.put("result", totalNewRows+" records logged.");
 		
 		}catch(JSONException e){
