@@ -140,20 +140,12 @@ public class MessageHandler
 				
 				Reading r = new Reading(time, value, groupId, type_id);
 				
-				r.bindToStatement(stmt);
-				
+				r.bindToStatement(stmt);				
 				
 				//add to batch
 				stmt.addBatch();										
 				
-				if(i % 300 == 0)
-				{
-					Log.debug("Completed " + i + "/" + readings.length());
-					int [] changes = stmt.executeBatch();
-					for (int u : changes) totalNewRows += u;					
-				}
 			}			
-			Log.debug("Completed " + readings.length());
 			int [] changes = stmt.executeBatch();
 			for (int u : changes) totalNewRows += u;	
 			
