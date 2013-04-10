@@ -148,6 +148,7 @@ public class MessageHandler
 				
 				if(i % 300 == 0)
 				{
+					Log.debug("Completed " + i + "/" + readings.length());
 					int [] changes = stmt.executeBatch();
 					for (int u : changes) totalNewRows += u;					
 				}
