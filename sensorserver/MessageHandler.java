@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,7 +14,7 @@ import org.json.JSONObject;
 
 import sensorserver.database.Database;
 import sensorserver.log.Log;
-import sensorserver.models.Reading;
+import sensorserver.models.ReadingType;
 
 /*
  * This class receives the raw string sent by a client, parses it and determines what to
@@ -30,7 +31,9 @@ import sensorserver.models.Reading;
  */
 public class MessageHandler 
 {
-	
+	/**
+	 * Generate a reply for the given JSON
+	 */
 	public static JSONObject reply(JSONObject in) throws Exception
 	{		
 		if(!in.has("group_id")){
@@ -49,7 +52,9 @@ public class MessageHandler
 		switch(method){
 			case "ping":
 				Database.getInstance().insertLog(groupId, "ping");
-				return handlePing(in);			
+				return handlePing(in);
+			case "info":
+				return handleInfo(in);
 			case "new_readings":
 				Database.getInstance().insertLog(groupId, "new_readings");
 				return handleNewReadings(in);
@@ -58,7 +63,7 @@ public class MessageHandler
 				return handleQueryReadings(in);
 			case "query_logs":
 				Database.getInstance().insertLog(groupId, "query_logs");
-				return handleQueryLogs(in);
+				return Database.getInstance().queryLogTable(in);
 			case "data_summary":
 				Database.getInstance().insertLog(groupId, "data_summary");
 				return handleDataSummaryRequest(in);
@@ -73,6 +78,7 @@ public class MessageHandler
 		return makeErrorJson(new Exception("Unknown method '"+method+"'"));
 	}
 
+
 	/**
 	 * Handle a 'ping' command. Just reply with pong as soon as possible.
 	 * in = {"group_id":X,"method":"ping"}
@@ -84,7 +90,69 @@ public class MessageHandler
 		reply.put("result", "pong");
 		return reply;
 	}
-	
+
+	/**
+	 * Return info about the server:
+	 * for each type of reading:
+	 *  - type name
+	 *  - earliest date
+	 *  - latest date
+	 *  - count
+	 */
+	private static JSONObject handleInfo(JSONObject in) throws Exception
+	{
+		
+		try
+		{
+			JSONObject reply = new JSONObject();
+			JSONArray result = new JSONArray();
+
+			
+			// Get Reading Types
+			String sql = "SELECT id, name FROM reading_types;";			
+			Statement s = Database.getInstance().getConnection().createStatement();
+			
+			ResultSet rs = s.executeQuery(sql);		
+			List<ReadingType> readingTypes = new ArrayList<ReadingType>();
+			while(rs.next())
+			{
+				ReadingType rt = new ReadingType(rs);
+				readingTypes.add(rt);
+			}
+			
+			// Get ranges and things
+			sql = "SELECT MAX(time), MIN(time), COUNT(*) FROM readings WHERE type_id = ?;";
+			PreparedStatement ps = Database.getInstance().getConnection().prepareStatement(sql);
+			
+			
+			for (ReadingType rt : readingTypes)
+			{				
+				ps.setInt(1, rt.getId());
+				
+				rs = ps.executeQuery();
+				rs.first();
+				result.put(
+						new JSONObject()
+						     .put("name", rt.getName())
+						     .put("count", rs.getInt(3))
+						     .put("time_from", rs.getTimestamp(2).toString())
+						     .put("time_to", rs.getTimestamp(1).toString())
+				);
+				
+			}
+			
+
+			reply.put("result", result);
+			return reply;
+		} 
+		catch (SQLException e)
+		{
+			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
+			return new JSONObject().put("error", "SQLException on server.");
+		}
+		
+		
+	}
 	/**
 	 * Called when a client wants to upload a set of readings
 	 * in = {
@@ -158,8 +226,7 @@ public class MessageHandler
 		return reply;
 	}
 
-	
-	/**
+	 /**
 	 * A client message to query the readings table. All filters in the "params" hash are optional.
 	 * in = {
 	 * 			'group_id' 	=> 	(int) group_id,
@@ -254,20 +321,21 @@ public class MessageHandler
 		}
 	}
 	
-	private static JSONObject handleQueryLogs(JSONObject in) throws Exception
-	{
-		JSONObject reply = Database.getInstance().queryLogTable(in);
-		return reply;
-	}
-	
+	/**
+	 * Return data summaries for all the readings
+	 */
 	private static JSONObject handleDataSummaryRequest(JSONObject in) throws Exception
 	{
 		JSONObject reply = new JSONObject();
-		reply.put("method", "data_summary");
+		//reply.put("method", "data_summary");
 		reply.put("result", Aggregator.getDataSummary());
 		return reply;
 	}	
 	
+	/**
+     * Return the last 30 lines or so from the sys.out
+     * Mostly used for debug purposes. Should be disabled in final build
+	 */
 	private static JSONObject handleGetLastLinesFromCurrentLog() throws Exception
 	{
 		JSONObject reply = new JSONObject();

@@ -1,18 +1,33 @@
 package sensorserver.models;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class ReadingType implements IModel
 {
+	private int id;
 	private String name;
 	
+	public int getId() {
+		return id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
 	public ReadingType() {}
 	
 	public ReadingType(String name) {
 		this.name = name;
 	}
 
+	public ReadingType(ResultSet row) throws SQLException
+	{
+		this.id = row.getInt(1);
+		this.name = row.getString(2);
+	}
 
 	public void bindToStatement(PreparedStatement stmt) throws SQLException {
 		stmt.setString(1, name);		
