@@ -113,14 +113,10 @@ public class MessageHandler
 			
 			Log.info("Processing " + readings.length() + " readings." );
 			
-			// prepare an insert statement for Readings table
-			PreparedStatement stmt = Database.getInstance().getConnection().prepareStatement(new Reading().insertStmt());
-			
-			int totalNewRows = 0;
+			String sql = "INSERT INTO readings (`time`, `value`, `sensor_id`, `type_id`) VALUES ";
 			
 			for(int i = 0; i < readings.length(); i++)
 			{
-				System.out.println(i);
 				JSONObject reading = readings.getJSONObject(i);
 				String type = reading.getString("type");
 				int type_id = Database.getInstance().getTypeIdFromStr(type, true);
@@ -139,16 +135,13 @@ public class MessageHandler
 					time = new Timestamp((long)tvalue);
 				}
 				
-				Reading r = new Reading(time, value, groupId, type_id);
+				if (i>0)sql+=", ";
+				sql += "('"+time.toString()+"', "+value+", "+groupId+", "+type_id+")";
 				
-				r.bindToStatement(stmt);				
-				
-				//add to batch
-				stmt.addBatch();										
-				
-			}			
-			int [] changes = stmt.executeBatch();
-			for (int u : changes) totalNewRows += u;	
+			}	
+			
+			Statement s = Database.getInstance().getConnection().createStatement();
+			int totalNewRows = s.executeUpdate(sql + ";");
 			
 			reply.put("result", totalNewRows+" records logged.");
 		
