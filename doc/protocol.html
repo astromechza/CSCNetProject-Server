@@ -1,0 +1,119 @@
+<html>
+<head>
+    <title>SensorServer Documentation - Protocol</title>
+</head>
+    <body>
+        <h1>Protocol</h1>
+        <p>
+            The SensorServer is capable of undestanding a variety of commands sent as JSON text strings. We chose JSON 
+            because it provides an unambiguous way of transmitting basic datastructures over http connections in a way 
+            that is simple, has low overhead, and is humanly readable for debugging purposes.
+        </p>
+        <p>
+            We based our protocol on the <a href="http://en.wikipedia.org/wiki/JSON-RPC">JSON-RCP</a> standard, which 
+            was designed for sending requests to servers. Our standard is very simple and relies on only a few fixed
+            fields:
+        </p>
+
+        <h3>Server receives:</h3>
+        <pre>
+        {
+            "method" : "",          // The command you wish to perform
+            "params" : X,           // Any additional data that muse be sent with the command
+            "group_id" : N          // The id of the group sending the command
+        } </pre>
+        <h3>Server sends:</h3>
+        <p>
+            If an error occurs, the 'result' field will not be present or will be blank. If you want to check for errors
+            rather check the value of the 'error' field
+        </p>
+        <pre>
+        {
+            "result" : X,           // The result of the command
+            "error" :  ""           // Some error message if an error occurs
+            "elapsed" : M           // Time in milliseconds taken to process the command. (debug info)
+        } </pre>
+
+        <hr>
+
+        <h2> Command: Ping </h2>
+        <p>
+            This is a very simple command used to check whether the server is online and responing correctly.
+        </p>
+
+        <h3>Server receives:</h3>
+        <pre>
+        {
+            "method" : "ping",          // The command you wish to perform
+            "params" : "",              // Nothing
+            "group_id" : N              // The id of the group sending the command
+        } </pre>
+        <h3>Server sends:</h3>
+        <pre>
+        {
+            "result" : "pong"            // The result of the command
+        } </pre>
+
+        <hr>
+
+        <h2> Command: Info </h2>
+        <p>
+            This command is used to ask what types and quantities of data are present on the server. It will return 
+            &lt;type>, &lt;count>, &lt;first time recorded>, &lt;last time recorded> for each type of data in the 
+            database. Note this does not group by group_id it is just for checking what and how much data is present.
+        </p>
+
+        <h3>Server receives:</h3>
+        <pre>
+        {
+            "method" : "info",          // The command you wish to perform
+            "params" : "",              // Nothing
+            "group_id" : N              // The id of the group sending the command
+        } </pre>
+        <h3>Server sends:</h3>
+        <pre>
+        {
+            "result": [
+                {
+                    "name" : "some-type-name",                // Name of the datatype, eg: "temperature"
+                    "count" : X,                              // Number of readings
+                    "time_from" : "2013-04-08 19:03:22.0",    // First time recorded as an ISO time
+                    "time_to" : "2013-04-10 13:53:10.0"       // Last time recorded as an ISO time
+                },
+                ...
+            ]
+        } </pre>
+
+        <hr>
+
+        <h2> Command: New Readings </h2>
+        <p>
+            This command is used by clients to upload data points to the server.
+        </p>
+
+        <h3>Server receives:</h3>
+        <pre>
+        {
+            "group_id" : 1,                                 // Group Id
+            "method" : "new_readings",                      // new readings method call
+            "params" : {    
+                "readings" : [                              // an array of readings
+                    { 
+                        "time" : "2013-04-10 17:50:49.76",    // ISO time string
+                        "value" : 1,                          // value as long or integer or float
+                        "type" : "light"                      // type as string
+                    },
+                    ...
+                ]
+            }
+        } </pre>
+        <h3>Server sends:</h3>
+        <pre>
+        {
+            "result" : "20 records logged."                    // Result of the upload
+        } </pre>
+
+
+
+    </body>
+</html>

@@ -92,7 +92,7 @@ public class MessageHandler
 	}
 
 	/**
-	 * Return info about the server:
+	 * Return info about the reading types:
 	 * for each type of reading:
 	 *  - type name
 	 *  - earliest date
@@ -131,12 +131,16 @@ public class MessageHandler
 				
 				rs = ps.executeQuery();
 				rs.first();
+				
+				Timestamp t1 = rs.getTimestamp(2);
+				Timestamp t2 = rs.getTimestamp(1);
+				
 				result.put(
 						new JSONObject()
 						     .put("name", rt.getName())
 						     .put("count", rs.getInt(3))
-						     .put("time_from", rs.getTimestamp(2).toString())
-						     .put("time_to", rs.getTimestamp(1).toString())
+						     .put("time_from", (t1==null)?null:t1.toString())
+						     .put("time_to", (t2==null)?null:t2.toString())
 				);
 				
 			}
@@ -153,6 +157,7 @@ public class MessageHandler
 		
 		
 	}
+	
 	/**
 	 * Called when a client wants to upload a set of readings
 	 * in = {
