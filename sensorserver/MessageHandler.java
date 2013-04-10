@@ -120,6 +120,7 @@ public class MessageHandler
 			
 			for(int i = 0; i < readings.length(); i++)
 			{
+				System.out.println(i);
 				JSONObject reading = readings.getJSONObject(i);
 				String type = reading.getString("type");
 				int type_id = Database.getInstance().getTypeIdFromStr(type, true);
