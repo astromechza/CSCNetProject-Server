@@ -435,7 +435,7 @@ public class Database
 		} 
 		catch (SQLException e) 
 		{
-			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
+			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace())+". SQL Query: "+statement);
 			return MessageHandler.makeErrorJson(e);
 		}finally{
 			try{
