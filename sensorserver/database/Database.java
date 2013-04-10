@@ -341,7 +341,7 @@ public class Database
 		Timestamp time_from = null;									
 		Timestamp time_to = null;		
 		long limit = 20;
-		List<Integer> group_ids = new ArrayList<Integer>();
+		JSONArray group_ids = null;
 		
 		if(in.has("params"))
 		{
@@ -365,44 +365,42 @@ public class Database
 			
 			if (params.has("group_ids"))
 			{
-				JSONArray ids = params.getJSONArray("group_ids");
-				
-				for(int i=0;i<ids.length();i++)
-				{
-					group_ids.add(ids.getInt(i));
-				}
-				
+				group_ids = params.getJSONArray("group_ids");				
 			}
 		}
 		
 		// Construct statement
 		String statement = "SELECT * FROM logs ";
 		
-		String whereClause = "";
-		if(time_from != null || time_to != null)
-		{
-			whereClause += "(";
-			
-			if(time_from != null) whereClause += "time >= '"+time_from+"' ";
-			if(time_to != null) whereClause += "time <= '"+time_to+"' ";
-			
-			whereClause += ") AND ";
-		}		
+		ArrayList<String> whereClause = new ArrayList<String>(5);
+		if(time_from != null)
+		{			
+			whereClause.add("time >= '"+time_from+"'");
+		}	
 		
-		if (group_ids.size()>0)
-		{
-			whereClause += "(";
-
-			for (int i=0;i<group_ids.size();i++)
-			{
-				if (i>0) whereClause += "OR ";
-				whereClause += "sensor_id = " + group_ids.get(i) + " ";			
-			}
-			
-			whereClause += ") ";
+		if(time_to != null){
+			whereClause.add("time <= '"+time_to+"'");						
 		}
 		
-		if(whereClause.length()>0) statement += "WHERE " + whereClause;
+		if (group_ids != null && group_ids.length() > 0)
+		{
+			whereClause.add("sensor_id IN("+group_ids.join(",")+")");
+		}
+		
+		// Combine our WHERE clauses into a string.
+		if(!whereClause.isEmpty()){
+			StringBuilder whereQuery = new StringBuilder();
+
+			for (String string : whereClause) {
+			    if (whereQuery.length() == 0) {
+			        whereQuery.append(" WHERE "+string+" ");
+			    }else{
+			    	whereQuery.append("AND "+string+" ");
+			    }
+			}
+			
+			statement += whereQuery;
+		}
 		
 		statement += "ORDER BY id DESC LIMIT " + limit + ";";
 		
