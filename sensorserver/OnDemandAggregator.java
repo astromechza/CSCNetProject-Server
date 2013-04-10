@@ -130,11 +130,13 @@ public class OnDemandAggregator
 		
 		sql += ";";
 		
+		Statement s = null;
+		ResultSet rs = null;
 		try 
 		{
-			Statement s = Database.getInstance().getConnection().createStatement();
+			s = Database.getInstance().getConnection().createStatement();			
+			rs = s.executeQuery(sql);
 			
-			ResultSet rs = s.executeQuery(sql);
 			if(rs.first())
 			{				
 				Object r = rs.getObject(1);
@@ -143,16 +145,20 @@ public class OnDemandAggregator
 					return new JSONObject().put("result", rs.getDouble(1));
 				}
 			}
-			return new JSONObject().put("error", "0 Records matched the filter");
-			
-			
+			return new JSONObject().put("error", "0 Records matched the filter");			
 		} 
 		catch (SQLException e) 
 		{
 			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
 			return MessageHandler.makeErrorJson(e);
-		}
-		
+		}finally{
+			try{
+				if(rs != null)
+					rs.close();
+				if(s != null)
+					s.close();
+			}catch(Exception e){}			
+		}		
 	}
 	
 	private static JSONObject aggregateMode(int typeId, int sensor_id, Timestamp timeFrom, Timestamp timeTo)  throws Exception
@@ -165,11 +171,12 @@ public class OnDemandAggregator
 		
 		sql += "GROUP BY value ORDER BY mode DESC LIMIT 1;";
 		
+		Statement s = null;
+		ResultSet rs = null;
 		try 
 		{
-			Statement s = Database.getInstance().getConnection().createStatement();
-			
-			ResultSet rs = s.executeQuery(sql);
+			s = Database.getInstance().getConnection().createStatement();			
+			rs = s.executeQuery(sql);
 			
 			if(rs.first())
 			{
@@ -191,6 +198,13 @@ public class OnDemandAggregator
 		{
 			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
 			return MessageHandler.makeErrorJson(e);
+		}finally{
+			try{
+				if(rs != null)
+					rs.close();
+				if(s != null)
+					s.close();
+			}catch(Exception e){}			
 		}
 	}
 	
@@ -201,9 +215,7 @@ public class OnDemandAggregator
 		String where = "WHERE d.type_id = " + typeId + " ";	
 		if (sensor_id > -1) where += " AND d.sensor_id = " + sensor_id + " ";		
 		if (timeFrom != null) where += " AND d.time >= '" + timeFrom.toString() + "' ";		
-		if (timeTo != null) where += " AND d.time <= '" + timeTo.toString() + "' ";
-		
-		
+		if (timeTo != null) where += " AND d.time <= '" + timeTo.toString() + "' ";		
 
 		String sql = "SELECT t1.value as median_val FROM (" +
 						"SELECT @rownum:=@rownum+1 as `row_number`, d.value " +
@@ -217,18 +229,17 @@ public class OnDemandAggregator
 					 	where +
 					 ") as t2 " +
 					 "WHERE 1 AND t1.row_number=floor(total_rows/2)+1;";	
-				
+			
+		Statement s = null;
+		ResultSet rs = null;
 		try 
 		{
-			Statement s = Database.getInstance().getConnection().createStatement();
-			
-			ResultSet rs = s.executeQuery(sql);
+			s = Database.getInstance().getConnection().createStatement();			
+			rs = s.executeQuery(sql);
 			
 			if(rs.first())
-			{
-				
-				double value = rs.getDouble(1);
-				
+			{				
+				double value = rs.getDouble(1);				
 				return new JSONObject().put("result", value);
 			}
 			else
@@ -240,7 +251,13 @@ public class OnDemandAggregator
 		{
 			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
 			return MessageHandler.makeErrorJson(e);
+		}finally{
+			try{
+				if(rs != null)
+					rs.close();
+				if(s != null)
+					s.close();
+			}catch(Exception e){}			
 		}
-	}
-	
+	}	
 }

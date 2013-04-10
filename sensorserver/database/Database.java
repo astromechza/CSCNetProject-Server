@@ -9,7 +9,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -116,7 +115,10 @@ public class Database
 		int count = 0;
 		while(rs.next()) count++;
 		
-		Log.info("Number of Readings: " + count);		
+		Log.info("Number of Readings: " + count);	
+		
+		rs.close();
+		s.close();
 	}
 	
 	/**
@@ -124,9 +126,10 @@ public class Database
 	 */
 	public void recreate()
 	{
+		Statement s = null;
 		try
 		{
-			Statement s = activeConnection.createStatement();
+			s = activeConnection.createStatement();
 			
 			// for each known model, destroy its table
 			for (IModel m : storableTypes)
@@ -136,10 +139,17 @@ public class Database
 				Log.debug("Creating `" + m.tableName() + "` table.");
 				s.execute(m.createIfNEStmt());
 			}
+			
+			
 		}catch(SQLException e){
 			Log.error("SQL error when dropping tables.");
 			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
-		}	
+		}finally{
+			try{
+				if(s != null)
+					s.close();
+			}catch(Exception e){}
+		}
 		
 	}
 
@@ -161,8 +171,7 @@ public class Database
 		{
 			Log.critical(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
 			System.exit(-1);
-		}
-		
+		}		
 	
 		try
 		{
@@ -171,9 +180,17 @@ public class Database
 			{
 				s.execute("SELECT * FROM " + m.tableName() + " LIMIT 1;");
 			}
+			
 			return true;
 			
-		} catch(SQLException e) { Log.debug(e); }
+		} catch(SQLException e) { 
+			Log.debug(e); 
+		}finally{
+			try{
+				if(s != null)
+					s.close();
+			}catch(Exception e){}
+		}
 		
 		return false;
 	}
@@ -183,9 +200,11 @@ public class Database
 	 */
 	public void preloadTypes()
 	{
+		Statement s = null;
+		ResultSet rs = null;
 		try {
-			Statement s = Database.getInstance().activeConnection.createStatement();			
-			ResultSet rs = s.executeQuery("SELECT * FROM reading_types;");
+			s = Database.getInstance().activeConnection.createStatement();			
+			rs = s.executeQuery("SELECT * FROM reading_types;");
 			
 			while(rs.next())
 			{
@@ -195,9 +214,17 @@ public class Database
 			}
 			
 			rs.close();
+			s.close();
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally{
+			try{
+				if(rs != null)
+					rs.close();
+				if(s != null)
+					s.close();
+			}catch(Exception e){}			
 		}
 		
 		Log.debug(readingTypeCache);
@@ -212,6 +239,10 @@ public class Database
 	public synchronized int getTypeIdFromStr(String type, boolean createIfNotExist)
 	{
 		Integer i = readingTypeCache.getKeyForValue(type);
+		PreparedStatement ps = null;
+		Statement s = null;
+		ResultSet rs = null;
+		
 		if (i==null && createIfNotExist)
 		{
 			Log.debug("Reading type '"+type+"' not in cache/database.");
@@ -219,7 +250,7 @@ public class Database
 			{
 				ReadingType rt = new ReadingType(type);
 				
-				PreparedStatement ps = Database.getInstance().activeConnection.prepareStatement(rt.insertStmt());
+				ps = Database.getInstance().activeConnection.prepareStatement(rt.insertStmt());
 				
 				rt.bindToStatement(ps);
 				
@@ -227,8 +258,8 @@ public class Database
 				
 				if (count != 1) throw new SQLException();
 					
-				Statement s = Database.getInstance().activeConnection.createStatement();
-				ResultSet rs = s.executeQuery("SELECT LAST_INSERT_ID();");
+				s = Database.getInstance().activeConnection.createStatement();
+				rs = s.executeQuery("SELECT LAST_INSERT_ID();");
 				rs.first();
 				int id = rs.getInt(1);
 				
@@ -241,6 +272,15 @@ public class Database
 			catch (SQLException e)
 			{
 				Log.error("Could not insert new reading_type.");
+			}finally{
+				try{
+					if(ps != null)
+						ps.close();
+					if(rs != null)
+						rs.close();
+					if(s != null)
+						s.close();
+				}catch(Exception e){}				
 			}
 			
 		}
@@ -258,27 +298,19 @@ public class Database
 	public String getTypeFromId(int type) 
 	{
 		String s = readingTypeCache.getValueForKey(type);
-		if (s==null)
-		{
-			
-			return "unknown";
-			
-		}
-		else
-		{
-			return s;
-		}
+		return (s == null) ? "unknown" : s;
 	}
 	
 	/**
 	 * Insert an action line for the given group id
 	 */
 	public Integer insertLog(int groupId, String action){
+		PreparedStatement stmt = null;
 		try{
 			
 			sensorserver.models.Log l = new sensorserver.models.Log(groupId, action, new Timestamp(Calendar.getInstance().getTime().getTime()));
 			
-			PreparedStatement stmt = activeConnection.prepareStatement(l.insertStmt());
+			stmt = activeConnection.prepareStatement(l.insertStmt());
 			
 			l.bindToStatement(stmt);
 			
@@ -287,12 +319,15 @@ public class Database
 		}catch(SQLException e){
 			Log.error("SQL error in Database.insertLog. Failed to log action to database.");
 			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
+		}finally{
+			try{
+				if(stmt != null)
+					stmt.close();
+			}catch(Exception e){}			
 		}
 		
 		return null;
-	}
-
-	
+	}	
 	
 	/**
 	 * 
@@ -374,14 +409,17 @@ public class Database
 		JSONObject reply = new JSONObject();
 		
 		// now do actual query
+		Statement sql = null;
+		ResultSet rows = null;
+		
 		try 
 		{
 			
 			int lineCount = 0;
 			JSONArray lines = new JSONArray();
 			
-			Statement sql = Database.getInstance().activeConnection.createStatement();
-			ResultSet rows = sql.executeQuery(statement);
+			sql = Database.getInstance().activeConnection.createStatement();
+			rows = sql.executeQuery(statement);
 			
 			while(rows.next())
 			{
@@ -399,14 +437,15 @@ public class Database
 		{
 			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
 			return MessageHandler.makeErrorJson(e);
-		}		
+		}finally{
+			try{
+				if(rows != null)
+					rows.close();
+				if(sql != null)
+					sql.close();
+			}catch(Exception e){}			
+		}
 		
 		return reply;
 	}
-
-	
-	
-	
-
-	
 }

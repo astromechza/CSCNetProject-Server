@@ -36,6 +36,8 @@ public class MessageHandler
 	 */
 	public static JSONObject reply(JSONObject in) throws Exception
 	{		
+		
+		// Reject messages that do not say who they are from or what they want.
 		if(!in.has("group_id")){
 			return makeErrorJson(new Exception("No group ID supplied."));
 		}
@@ -101,18 +103,19 @@ public class MessageHandler
 	 */
 	private static JSONObject handleInfo(JSONObject in) throws Exception
 	{
-		
+		Statement s = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
 		try
 		{
 			JSONObject reply = new JSONObject();
 			JSONArray result = new JSONArray();
-
 			
 			// Get Reading Types
 			String sql = "SELECT id, name FROM reading_types;";			
-			Statement s = Database.getInstance().getConnection().createStatement();
+			s = Database.getInstance().getConnection().createStatement();
 			
-			ResultSet rs = s.executeQuery(sql);		
+			rs = s.executeQuery(sql);		
 			List<ReadingType> readingTypes = new ArrayList<ReadingType>();
 			while(rs.next())
 			{
@@ -122,7 +125,7 @@ public class MessageHandler
 			
 			// Get ranges and things
 			sql = "SELECT MAX(time), MIN(time), COUNT(*) FROM readings WHERE type_id = ?;";
-			PreparedStatement ps = Database.getInstance().getConnection().prepareStatement(sql);
+			ps = Database.getInstance().getConnection().prepareStatement(sql);
 			
 			
 			for (ReadingType rt : readingTypes)
@@ -153,9 +156,16 @@ public class MessageHandler
 		{
 			Log.error(e + " " + Utils.fmtStackTrace(e.getStackTrace()));
 			return new JSONObject().put("error", "SQLException on server.");
-		}
-		
-		
+		}finally{
+			try{
+				if(rs != null)
+					rs.close();
+				if(s != null)
+					s.close();
+				if(ps != null)
+					ps.close();
+			}catch(Exception e){}			
+		}		
 	}
 	
 	/**
@@ -176,7 +186,7 @@ public class MessageHandler
 	private static JSONObject handleNewReadings(JSONObject in)  throws Exception
 	{
 		JSONObject reply = new JSONObject();
-		
+		Statement s = null;
 		try
 		{
 			// The group id TODO change to sensor_id
@@ -213,7 +223,7 @@ public class MessageHandler
 				
 			}	
 			
-			Statement s = Database.getInstance().getConnection().createStatement();
+			s = Database.getInstance().getConnection().createStatement();
 			int totalNewRows = s.executeUpdate(sql + ";");
 			
 			reply.put("result", totalNewRows+" records logged.");
@@ -227,6 +237,11 @@ public class MessageHandler
 		}catch (Exception e){
 			Log.error("Unexpected Error in MessageHandler.handleNewReadings." + Utils.fmtStackTrace(e.getStackTrace()));
 			reply = makeErrorJson(e);
+		}finally{
+			try{
+				if(s != null)
+					s.close();
+			}catch(Exception e){}			
 		}
 		return reply;
 	}
@@ -248,15 +263,17 @@ public class MessageHandler
 	{		
 		JSONObject reply = new JSONObject();
 		ArrayList<String> whereClause = new ArrayList<String>(3);
-		String join = null;
 		
+		// Add whatever result filters have been supplied.
 		if(in.has("params")){
 			JSONObject params = in.getJSONObject("params");
 			
 			if(params.has("group_ids")){
 				JSONArray json_group_ids = params.getJSONArray("group_ids");
-				String group_ids = json_group_ids.join(",");
-				whereClause.add("sensor_id IN("+group_ids+")");
+				if(json_group_ids.length() > 0){
+					String group_ids = json_group_ids.join(",");
+					whereClause.add("sensor_id IN("+group_ids+")");
+				}
 			}
 			
 			if(params.has("time_from")){
@@ -277,12 +294,13 @@ public class MessageHandler
 					String types = json_types.join(",");
 					whereClause.add("reading_types.name IN("+types+")");
 				}
-			}	
+			}
 		
 		}
 		
-		// TODO: should probably move this into the Database class.
 		String query = "SELECT * FROM readings INNER JOIN reading_types ON reading_types.id = readings.type_id";
+		Statement s = null;
+		ResultSet rs = null;
 		try {
 			
 			// Combine our WHERE clauses into a string.
@@ -300,8 +318,8 @@ public class MessageHandler
 				query += whereQuery;
 			}
 
-			Statement s = Database.getInstance().getConnection().createStatement();
-			ResultSet rs = s.executeQuery(query);
+			s = Database.getInstance().getConnection().createStatement();
+			rs = s.executeQuery(query);
 			
 			Log.debug("Ran query: "+query);
 			
@@ -323,6 +341,13 @@ public class MessageHandler
 		} catch (SQLException e) {
 			Log.error("SQL Error: "+e.getMessage()+" in query \""+query+"\"");
 			return makeErrorJson(e);
+		}finally{
+			try{
+				if(rs != null)
+					rs.close();
+				if(s != null)
+					s.close();
+			}catch(Exception e){}			
 		}
 	}
 	
@@ -332,7 +357,6 @@ public class MessageHandler
 	private static JSONObject handleDataSummaryRequest(JSONObject in) throws Exception
 	{
 		JSONObject reply = new JSONObject();
-		//reply.put("method", "data_summary");
 		reply.put("result", Aggregator.getDataSummary());
 		return reply;
 	}	
@@ -359,8 +383,4 @@ public class MessageHandler
 		o.put("error", e.getMessage());
 		return o;
 	}
-	
-	
-	
-
 }

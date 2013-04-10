@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import sensorserver.log.Log;
@@ -51,15 +50,12 @@ public class ClientInstance implements Runnable {
 				
 				try
 				{
-					inO = new JSONObject(received);
-					
-					
-					
+					inO = new JSONObject(received);					
+					// Dispatch to message handler to determine how to respond to the message.
 					outO = MessageHandler.reply(inO);
 				}
 				catch (Exception e)
-				{
-					
+				{					
 					outO = new JSONObject();
 					outO.put("result", "");
 					outO.put("error", e.getMessage());
@@ -68,14 +64,12 @@ public class ClientInstance implements Runnable {
 				long time_end = System.currentTimeMillis();
 				
 				outO.put("elapsed", time_end-time_start);
-				String outS = outO.toString();
-								
+				String outS = outO.toString();								
 				Log.debug("Sent: " + outS);
 				
 				out.write(outS);
 				out.println();
-				out.flush();
-				
+				out.flush();				
 			}			
 		} 
 		catch (IOException e) 

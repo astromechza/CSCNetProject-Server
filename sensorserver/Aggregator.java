@@ -30,11 +30,15 @@ public class Aggregator {
 		return dataSummary;		
 	}
 	
-	private static boolean requireNewGeneration(){		
+	// Returns true if there has been a new batch of readings uploaded
+	// since we last generated the data summary.
+	private static boolean requireNewGeneration(){	
+		Statement s = null;
+		ResultSet rs = null;
 		try {
-			Statement s = Database.getInstance().getConnection().createStatement();		
+			s = Database.getInstance().getConnection().createStatement();		
 			// Get the time the last set of readings received.
-			ResultSet rs = s.executeQuery("SELECT time FROM logs WHERE action = 'new_readings' ORDER BY id DESC LIMIT 1");
+			rs = s.executeQuery("SELECT time FROM logs WHERE action = 'new_readings' ORDER BY id DESC LIMIT 1");
 			
 			// Ensure there is at least one log entry.
 			if (rs.first())	{
@@ -45,6 +49,13 @@ public class Aggregator {
 			}
 		}catch (SQLException e) {
 			sensorserver.log.Log.error(e);
+		}finally{
+			try{
+				if(rs != null)
+					rs.close();
+				if(s != null)
+					s.close();
+			}catch(Exception e){}			
 		}
 		
 		return true;
@@ -55,10 +66,13 @@ public class Aggregator {
 		
 		Log.info("Generating new data summary.");
 		
+		Statement s = null;
+		Statement s2 = null;
+		ResultSet rs = null;
 		try {
-			Statement s = Database.getInstance().getConnection().createStatement();
-			Statement s2 = Database.getInstance().getConnection().createStatement();
-			ResultSet rs = s.executeQuery("SELECT type_id, AVG(value) AS avg, MIN(value) AS min, MAX(value) AS max, STDDEV(value) AS stddev FROM readings GROUP BY type_id");
+			s = Database.getInstance().getConnection().createStatement();
+			s2 = Database.getInstance().getConnection().createStatement();
+			rs = s.executeQuery("SELECT type_id, AVG(value) AS avg, MIN(value) AS min, MAX(value) AS max, STDDEV(value) AS stddev FROM readings GROUP BY type_id");
 			
 			while(rs.next()){
 				JSONObject set = new JSONObject();
@@ -81,21 +95,12 @@ public class Aggregator {
 							"GROUP BY value " +
 							"ORDER BY c DESC LIMIT 1) ");
 				
-				//String modes = "";
-				//while(modeSet.next()){
-				//	modes += " "+modeSet.getString("value");
-				//}
-				//modes.trim();	
-				//set.put("mode", modes);
-				
 				JSONArray modes = new JSONArray();
 				while(modeSet.next()){
 					modes.put(modeSet.getDouble("value"));
 				}
 
-				set.put("mode", modes);
-				
-				
+				set.put("mode", modes);				
 				modeSet.close();
 				
 				// ...median
@@ -117,13 +122,21 @@ public class Aggregator {
 				
 				double median = medianQuery.getDouble("median");
 				set.put("median", median);
-				
-				
+				medianQuery.close();
 				
 				dataSummary.put(set);
 			}			
 		} catch (SQLException e) {
 			sensorserver.log.Log.error(e + " "  + Utils.fmtStackTrace(e.getStackTrace()));
+		}finally{
+			try{
+				if(rs != null)
+					rs.close();
+				if(s != null)
+					s.close();
+				if(s2 != null)
+					s2.close();
+			}catch(Exception e){}			
 		}
 	}
 }
