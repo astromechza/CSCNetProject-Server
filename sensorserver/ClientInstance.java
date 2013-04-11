@@ -64,11 +64,12 @@ public class ClientInstance implements Runnable {
 				long time_end = System.currentTimeMillis();
 				
 				outO.put("elapsed", time_end-time_start);
-				String outS = outO.toString();								
-				Log.debug("Sent: " + outS.length() + " B :"+ outS);
+				String outS = outO.toString();							
 				
 				out.write(outS);
 				out.println();		//newline
+				
+				Log.debug("Sent: " + outS.length() + " B :"+ outS);
 				out.flush();				
 			}			
 		} 

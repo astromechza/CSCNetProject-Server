@@ -61,6 +61,7 @@
             This command is used to ask what types and quantities of data are present on the server. It will return 
             &lt;type>, &lt;count>, &lt;first time recorded>, &lt;last time recorded> for each type of data in the 
             database. Note this does not group by group_id it is just for checking what and how much data is present.
+            It also returns an array of all the group id's that have recorded data.
         </p>
 
         <h3>Server receives:</h3>
@@ -73,15 +74,17 @@
         <h3>Server sends:</h3>
         <pre>
         {
-            "result": [
-                {
-                    "name" : "some-type-name",                // Name of the datatype, eg: "temperature"
-                    "count" : X,                              // Number of readings
-                    "time_from" : "2013-04-08 19:03:22.0",    // First time recorded as an ISO time
-                    "time_to" : "2013-04-10 13:53:10.0"       // Last time recorded as an ISO time
-                },
-                ...
-            ]
+            "result": {
+                "types" : [
+                    {
+                        "name" : "some-type-name",                // Name of the datatype, eg: "temperature"
+                        "count" : X,                              // Number of readings
+                        "time_from" : "2013-04-08 19:03:22.0",    // First time recorded as an ISO time
+                        "time_to" : "2013-04-10 13:53:10.0"       // Last time recorded as an ISO time
+                    }
+                ],
+                "groups" : [ 1, 2, 3, ... ]                   // Group Ids
+            }
         } </pre>
 
         <hr>

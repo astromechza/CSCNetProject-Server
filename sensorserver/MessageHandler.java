@@ -56,6 +56,7 @@ public class MessageHandler
 				Database.getInstance().insertLog(groupId, "ping");
 				return handlePing(in);
 			case "info":
+				Database.getInstance().insertLog(groupId, "info");
 				return handleInfo(in);
 			case "new_readings":
 				Database.getInstance().insertLog(groupId, "new_readings");
@@ -109,7 +110,10 @@ public class MessageHandler
 		try
 		{
 			JSONObject reply = new JSONObject();
-			JSONArray result = new JSONArray();
+			JSONObject result = new JSONObject();
+			
+			/***** EXISTING TYPES *****/
+			JSONArray types = new JSONArray();
 			
 			// Get Reading Types
 			String sql = "SELECT id, name FROM reading_types;";			
@@ -138,7 +142,7 @@ public class MessageHandler
 				Timestamp t1 = rs.getTimestamp(2);
 				Timestamp t2 = rs.getTimestamp(1);
 				
-				result.put(
+				types.put(
 						new JSONObject()
 						     .put("name", rt.getName())
 						     .put("count", rs.getInt(3))
@@ -147,7 +151,24 @@ public class MessageHandler
 				);
 				
 			}
+			result.put("types", types);
 			
+			/***** END *****/
+			
+			/***** EXISTING GROUPS *****/
+			JSONArray groups = new JSONArray();
+			
+			sql = "SELECT sensor_id FROM readings GROUP BY sensor_id;";
+			s = Database.getInstance().getConnection().createStatement();
+			
+			rs = s.executeQuery(sql);		
+			while(rs.next())
+			{
+				groups.put(rs.getInt(1));
+			}
+			
+			result.put("groups", groups);
+			/***** END *****/
 
 			reply.put("result", result);
 			return reply;
