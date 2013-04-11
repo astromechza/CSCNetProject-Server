@@ -43,7 +43,7 @@ public class ClientInstance implements Runnable {
 			// read and process each line individually
 			while(!close && (received = in.readLine()) != null)
 			{	
-				Log.debug("Received: " + received);
+				Log.debug("Sent: " + received.length() + " B :"+ received);
 				JSONObject inO, outO = null;
 				
 				long time_start = System.currentTimeMillis();
@@ -65,10 +65,10 @@ public class ClientInstance implements Runnable {
 				
 				outO.put("elapsed", time_end-time_start);
 				String outS = outO.toString();								
-				Log.debug("Sent: " + outS);
+				Log.debug("Sent: " + outS.length() + " B :"+ outS);
 				
 				out.write(outS);
-				out.println();
+				out.println();		//newline
 				out.flush();				
 			}			
 		} 
