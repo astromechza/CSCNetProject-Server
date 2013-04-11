@@ -318,6 +318,7 @@ public class MessageHandler
 				query += whereQuery;
 			}
 
+			query += " ORDER BY time ASC";
 			s = Database.getInstance().getConnection().createStatement();
 			rs = s.executeQuery(query);
 			
