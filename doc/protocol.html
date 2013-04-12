@@ -91,7 +91,8 @@
 
         <h2> Command: New Readings </h2>
         <p>
-            This command is used by clients to upload data points to the server.
+            This command is used by clients to upload data points to the server. The client replies with the number of
+            records it recorded. Note that this should always be equal to the number of records in the uploaded JSON. 
         </p>
 
         <h3>Server receives:</h3>
@@ -116,6 +117,170 @@
             "result" : "20 records logged."                    // Result of the upload
         } </pre>
 
+
+        <hr>
+
+        <h2> Command: Query Readings </h2>
+        <p>
+            The "query_readings" method is used to return readings that match the specified parameters. There 
+            is a difference between a blank array and leaving the "group_ids" or "types". Blank array will return no 
+            readings as no readings will match any of the items in the array since there are no items in the array.
+        </p>
+
+        <h3>Server receives:</h3>
+        <pre>
+        {
+            "group_id" : 1,                                 
+            "method" : "query_readings",                       
+            "params" : {    
+                "group_ids" : [ 1, 2, 3 ],                      // Filter by groups
+                "time_from" : "2001-01-01 00:00:00.000",        // Any readings after this time
+                "time_to" : "9999-12-31 23:59:59.999",          // and Any readings  before this time
+                "types" : [ "temperature", "humidity"]          // Types to return 
+                ]
+            }
+        } </pre>
+        <h3>Server sends:</h3>
+        <pre>
+        {
+            "result" : [
+                {
+                    "group_id" : 1,
+                    "type" : "temperature",
+                    "value" : 3.141568,
+                    "time" : "2001-01-01 00:00:00.000"
+                },
+                ...
+            ]
+        } </pre>
+
+        <hr>
+
+        <h2> Command: Query Logs </h2>
+        <p>
+            The "query_logs" method is used to return actions from the Logs table in the database.
+        </p>
+
+        <h3>Server receives:</h3>
+        <pre>
+        {
+            "group_id" : 1,                                 
+            "method" : "query_logs",                       
+            "params" : {    
+                    "group_ids" : [ 1, 2, 3 ],                      // Filter by groups
+                    "time_from" : "2001-01-01 00:00:00.000",        // Any actions after this time
+                    "time_to" : "9999-12-31 23:59:59.999",          // and Any actions before this time
+                    "limit" : 30                                    // The number of records to return. Rows are from most recent to least recent.  By default this is 20
+                }
+            }
+        } </pre>
+        <h3>Server sends:</h3>
+        <pre>
+        {
+            "result" : {
+                "lines" : [
+                    {
+                        "time" : "2001-01-01 00:00:00.000",         // The time the action occurred
+                        "group_id" : 10,                            // The group that performed the action
+                        "action" : "Some string"                    // The action that was performed
+                    },
+                    ...                    
+                ],
+                "line_count" : 33
+            }
+        } </pre>
+
+
+        <hr>
+
+        <h2> Command: Data Summary </h2>
+        <p>
+            This method provides a straightforward way of getting aggregation data for the various types of data on the server. For each type, a number of numbers are returned:
+        </p>
+        <ul>
+            <li>Mean (Average)</li>
+            <li>Minimum</li>
+            <li>Maximum</li>
+            <li>Standard Deviation</li>
+            <li>Count</li>
+            <li>Median</li>
+            <li>Mode</li>
+
+        </ul>   
+        <p>
+            The summary is cached on the server for susequent calls to "data_summary". When new records are uploaded the cache expires and the 
+            data summary is regenerated next time it is requested.
+        </p>    
+
+        <h3>Server receives:</h3>
+        <pre>
+        {
+            "group_id" : 1,                                 
+            "method" : "query_logs",                       
+            "params" : {    
+                    "group_ids" : [ 1, 2, 3 ],                      // Filter by groups
+                    "time_from" : "2001-01-01 00:00:00.000",        // Any actions after this time
+                    "time_to" : "9999-12-31 23:59:59.999",          // and Any actions before this time
+                    "limit" : 30                                    // The number of records to return. Rows are from most recent to least recent.  By default this is 20
+                }
+            }
+        } </pre>
+        <h3>Server sends:</h3>
+        <pre>
+        {
+            "result" : [
+                {
+                    "min" : 1,
+                    "median" : 1,
+                    "max" : 1,
+                    "mean" : 1,
+                    "stddev" : 0,
+                    "type" : "temperature",
+                    "type_id" : 1,
+                    "mode" :[1]
+                },
+                ...
+            ]
+        } </pre>
+
+
+        <hr>
+
+        <h2> Command: Aggregation </h2>
+        <p>
+            In addition to the data_summary command, there is a command to get a specific aggregation of a specific 
+            range of readings. This is substantially faster when the user just want a specific value and is recalculated 
+            each time.
+        </p>
+        <h3>Possible Aggregations are:</h3> 
+        <ul>
+            <li>COUNT              "count"</li>
+            <li>MEAN               "mean" or "average" or "avg"</li>
+            <li>MINIMUM            "min" or "minimum"</li>
+            <li>MAXIMUM            "max" or "maximum"</li>
+            <li>STANDARD DEVIATION "std" or "stddev" or "stddeviation" or "standarddeviation"</li>
+            <li>MODE               "mode"</li>
+            <li>MEDIAN             "median"</li>
+        </ul>
+
+        <h3>Server receives:</h3>
+        <pre>
+        {
+            "method" : "aggregate",     
+            "group_id : 1,                              // Group Id
+            "params" : {                                
+                "aggregation" : "mean",                 // The aggregation type
+                "type" : "temperature",                 // Filter by type
+                "group_id" : 22,                        // Filter by group id
+                "time_from" : "2001-01-01 00:00:00.000" // Readings from this time
+                "time_to" : "9999-12-31 23:59:59.999"   // Readings until this time    
+            }
+        } </pre>
+        <h3>Server sends:</h3>
+        <pre>
+        {
+            "result" : 3.141526                         // The result 
+        } </pre>
 
 
     </body>
