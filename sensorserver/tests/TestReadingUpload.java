@@ -27,7 +27,7 @@ public class TestReadingUpload {
 	public static JSONObject randomReading()
 	{
 		int type = (int)Math.floor(Math.random()*readingTypes.length);
-		double value = 1;//(Math.random()*(readingMaxes[type]-readingMins[type]) + readingMins[type]);
+		double value = (Math.random()*(readingMaxes[type]-readingMins[type]) + readingMins[type]);
 		long time = System.currentTimeMillis();
 		
 		Timestamp ts = new Timestamp(time);
